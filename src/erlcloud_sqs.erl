@@ -390,8 +390,8 @@ sqs_xml_request(Config, QueueName, Action, Params) ->
     of
         {ok, Body} ->
             Body;
-        {error, Reason} ->
-            erlang:error({aws_error, Reason})
+        {error, Reason} = E->
+            E
     end.
 
 sqs_request(Config, QueueName, Action, Params) ->
@@ -403,8 +403,8 @@ sqs_request(Config, QueueName, Action, Params) ->
     of
         {ok, Body} ->
             Body;
-        {error, Reason} ->
-            erlang:error({aws_error, Reason})
+        {error, Reason} = E ->
+            E
     end.
 
 queue_path([$/|_] = QueueName) -> QueueName;

@@ -67,7 +67,7 @@ aws_request(Method, Protocol, Host, Port, Path, Params, #aws_config{} = Config) 
         {ok, Body} ->
             Body;
         {error, Reason} ->
-            erlang:error({aws_error, Reason})
+            throw({aws_error, Reason})
     end.
 aws_request(Method, Protocol, Host, Port, Path, Params, AccessKeyID, SecretAccessKey) ->
     aws_request(Method, Protocol, Host, Port, Path, Params,

@@ -513,6 +513,6 @@ elb_request(Config, Action, Params) ->
     of
         {ok, Body} ->
             Body;
-        {error, Reason} ->
-            erlang:error({aws_error, Reason})
+        {error, Reason} = E->
+            E
     end.
