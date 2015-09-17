@@ -109,6 +109,6 @@ sts_query(AwsConfig, Action, Params, ApiVersion) ->
     of
         {ok, Body} ->
             Body;
-        {error, Reason} = E ->
-            E
+        {error, Reason} ->
+           {error, Reason}
     end.

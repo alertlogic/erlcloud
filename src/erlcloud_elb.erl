@@ -513,6 +513,6 @@ elb_request(Config, Action, Params) ->
     of
         {ok, Body} ->
             Body;
-        {error, Reason} = E->
-            E
+        {error, Reason} ->
+            {error, Reason}
     end.
