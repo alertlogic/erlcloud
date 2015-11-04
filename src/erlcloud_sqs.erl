@@ -65,13 +65,18 @@ configure(AccessKeyID, SecretAccessKey, Host) ->
 add_permission(QueueName, Label, Permissions) ->
     add_permission(QueueName, Label, Permissions, default_config()).
 
--spec add_permission/4 :: (string(), string(), sqs_acl(), aws_config()) -> ok.
+-spec add_permission/4 :: (string(), string(), sqs_acl(), aws_config()) -> ok | {error, term()}.
 add_permission(QueueName, Label, Permissions, Config)
   when is_list(QueueName),
        is_list(Label), length(Label) =< 80,
        is_list(Permissions) ->
-    sqs_simple_request(Config, QueueName, "AddPermission",
-                       [{"Label", Label}|erlcloud_aws:param_list(encode_permissions(Permissions), {"AWSAccountId", "ActionName"})]).
+    case sqs_simple_request(Config, QueueName, "AddPermission",
+                       [{"Label", Label}|erlcloud_aws:param_list(encode_permissions(Permissions), {"AWSAccountId", "ActionName"})]) of
+        ok -> ok;
+
+        {error, Reason} ->
+            {error, Reason}
+    end.
 
 encode_permissions(Permissions) ->
     [encode_permission(P) || P <- Permissions].
@@ -92,10 +97,14 @@ change_message_visibility(QueueName, ReceiptHandle, VisibilityTimeout) ->
     change_message_visibility(QueueName, ReceiptHandle, VisibilityTimeout,
                               default_config()).
 
--spec change_message_visibility/4 :: (string(), string(), 0..43200, aws_config()) -> ok.
+-spec change_message_visibility/4 :: (string(), string(), 0..43200, aws_config()) -> ok | {error, term()}.
 change_message_visibility(QueueName, ReceiptHandle, VisibilityTimeout, Config) ->
-    sqs_simple_request(Config, QueueName, "ChangeMessageVisibility",
-                       [{"ReceiptHandle", ReceiptHandle}, {"VisibilityTimeout", VisibilityTimeout}]).
+    case sqs_simple_request(Config, QueueName, "ChangeMessageVisibility",
+                       [{"ReceiptHandle", ReceiptHandle}, {"VisibilityTimeout", VisibilityTimeout}]) of
+        ok -> ok;
+        {error, Reason} ->
+            {error, Reason}
+    end.
 
 -spec create_queue/1 :: (string()) -> proplist().
 create_queue(QueueName) ->
@@ -128,20 +137,28 @@ create_queue(QueueName, DefaultVisibilityTimeout, Config)
 delete_message(QueueName, ReceiptHandle) ->
     delete_message(QueueName, ReceiptHandle, default_config()).
 
--spec delete_message/3 :: (string(), string(), aws_config()) -> ok.
+-spec delete_message/3 :: (string(), string(), aws_config()) -> ok | {error, term()}.
 delete_message(QueueName, ReceiptHandle, Config)
   when is_list(QueueName), is_list(ReceiptHandle) ->
-    sqs_simple_request(Config, QueueName, "DeleteMessage",
-                       [{"ReceiptHandle", ReceiptHandle}]).
+    case sqs_simple_request(Config, QueueName, "DeleteMessage",
+                       [{"ReceiptHandle", ReceiptHandle}]) of
+        ok -> ok;
+        {error, Reason} ->
+            {error, Reason}
+    end.
 
 -spec delete_queue/1 :: (string()) -> ok.
 delete_queue(QueueName) ->
     delete_queue(QueueName, default_config()).
 
--spec delete_queue/2 :: (string(), aws_config()) -> ok.
+-spec delete_queue/2 :: (string(), aws_config()) -> ok | {error, term()}.
 delete_queue(QueueName, Config)
   when is_list(QueueName) ->
-    sqs_simple_request(Config, QueueName, "DeleteQueue", []).
+    case sqs_simple_request(Config, QueueName, "DeleteQueue", []) of
+        ok -> ok;
+        {error, Reason} ->
+            {error, Reason}
+    end.
 
 -spec get_queue_attributes/1 :: (string()) -> proplist().
 get_queue_attributes(QueueName) ->
@@ -330,11 +347,15 @@ decode_attributes(Attrs) ->
 remove_permission(QueueName, Label) ->
     remove_permission(QueueName, Label, default_config()).
 
--spec remove_permission/3 :: (string(), string(), aws_config()) -> ok.
+-spec remove_permission/3 :: (string(), string(), aws_config()) -> ok | {error, term()}.
 remove_permission(QueueName, Label, Config)
   when is_list(QueueName), is_list(Label) ->
-    sqs_simple_request(Config, QueueName, "RemovePermission",
-                       [{"Label", Label}]).
+    case sqs_simple_request(Config, QueueName, "RemovePermission",
+                       [{"Label", Label}]) of
+        ok -> ok;
+        {error, Reason} ->
+            {error, Reason}
+    end.
 
 -spec send_message/2 :: (string(), string()) -> proplist().
 send_message(QueueName, MessageBody) ->
@@ -367,19 +388,28 @@ send_message(QueueName, MessageBody, DelaySeconds, Config)
 set_queue_attributes(QueueName, Attributes) ->
     set_queue_attributes(QueueName, Attributes, default_config()).
 
--spec set_queue_attributes/3 :: (string(), [{visibility_timeout, integer()} | {policy, string()}], aws_config()) -> ok.
+-spec set_queue_attributes/3 :: (string(), [{visibility_timeout, integer()} | {policy, string()}], aws_config()) -> ok | {error, term()}.
 set_queue_attributes(QueueName, Attributes, Config)
   when is_list(QueueName), is_list(Attributes) ->
     Params = lists:flatten(erlcloud_aws:param_list([encode_attribute_name(Name) || {Name, _} <- Attributes], "Attribute.Name"),
                           erlcloud_aws:param_list([Value || {_, Value} <- Attributes], "Attribute.Value")),
 
-    sqs_simple_request(Config, QueueName, "SetQueueAttributes", Params).
+    case sqs_simple_request(Config, QueueName, "SetQueueAttributes", Params) of
+        ok -> ok;
+
+        {error, Reason} ->
+            {error, Reason}
+    end.
 
 default_config() -> erlcloud_aws:default_config().
 
 sqs_simple_request(Config, QueueName, Action, Params) ->
-    sqs_request(Config, QueueName, Action, Params),
-    ok.
+    case sqs_request(Config, QueueName, Action, Params) of
+        {error, Reason} ->
+            {error, Reason};
+        {ok, _Body} ->
+            ok
+    end.
 
 sqs_xml_request(Config, QueueName, Action, Params) ->
     case erlcloud_aws:aws_request_xml4(post, Config#aws_config.sqs_protocol,
@@ -402,9 +432,9 @@ sqs_request(Config, QueueName, Action, Params) ->
                               "sqs", Config)
     of
         {ok, Body} ->
-            Body;
+            {ok, Body};
         {error, Reason} ->
-            erlang:error({aws_error, Reason})
+            {error, Reason}
     end.
 
 queue_path([$/|_] = QueueName) -> QueueName;
