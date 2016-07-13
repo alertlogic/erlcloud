@@ -5,6 +5,7 @@
 -export([new/2, new/3, new/4,
          configure/2, configure/3, configure/4, configure/5,
          create_bucket/1, create_bucket/2, create_bucket/3, create_bucket/4,
+         check_bucket/1, check_bucket/2,
          delete_bucket/1, delete_bucket/2,
          get_bucket_attribute/2, get_bucket_attribute/3,
          list_buckets/0, list_buckets/1,
@@ -251,6 +252,18 @@ delete_bucket(BucketName) ->
 delete_bucket(BucketName, Config)
   when is_list(BucketName) ->
     s3_simple_request(Config, delete, BucketName, "/", "", [], <<>>, []).
+
+-spec check_bucket(string()) -> ok.
+
+check_bucket(BucketName) 
+  when is_list(BucketName) ->
+    check_bucket(BucketName, default_config()).
+
+-spec check_bucket(string(), aws_config()) -> ok.
+
+check_bucket(BucketName, Config)
+  when is_list(BucketName) ->
+    s3_simple_request(Config, head, BucketName, "/", "", [], <<>>, []).
 
 
 -spec delete_objects_batch(string(), list()) -> no_return().
