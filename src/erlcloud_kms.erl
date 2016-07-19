@@ -113,16 +113,14 @@ default_config() ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec create_alias/2 ::
-          (AliasName :: string(),
+-spec create_alias(AliasName :: string(),
            TargetKeyId :: string()) ->
           return_val().
 create_alias(AliasName, TargetKeyId) ->
     create_alias(AliasName, TargetKeyId, default_config()).
 
 
--spec create_alias/3 ::
-          (AliasName :: string(),
+-spec create_alias(AliasName :: string(),
            TargetKeyId :: string(),
            Config :: aws_config()) ->
           return_val().
@@ -148,8 +146,7 @@ create_alias(AliasName, TargetKeyId, Config) ->
 -type create_grant_opt_key() :: grant_tokens | constraints | retiring_principal.
 
 
--spec create_grant/3 ::
-          (GranteePrincipal :: string(),
+-spec create_grant(GranteePrincipal :: string(),
            KeyId :: string(),
            Operations :: [string()]) ->
           return_val().
@@ -157,8 +154,7 @@ create_grant(GranteePrincipal, KeyId, Operations) ->
     create_grant(GranteePrincipal, KeyId, Operations, []).
 
 
--spec create_grant/4 ::
-          (GranteePrincipal :: string(),
+-spec create_grant(GranteePrincipal :: string(),
            KeyId :: string(),
            Operations :: [string()],
            Options :: create_grant_opts()) ->
@@ -167,8 +163,7 @@ create_grant(GranteePrincipal, KeyId, Operations, Options) ->
     create_grant(GranteePrincipal, KeyId, Operations, Options, default_config()).
 
 
--spec create_grant/5 ::
-          (GranteePrincipal :: string(),
+-spec create_grant(GranteePrincipal :: string(),
            KeyId :: string(),
            Operations :: [string()],
            Options :: create_grant_opts(),
@@ -199,20 +194,18 @@ create_grant(GranteePrincipal, KeyId, Operations, Options, Config) ->
 -type create_key_opt_key() :: description | key_usage | policy.
 
 
--spec create_key/0 :: () -> return_val().
+-spec create_key() -> return_val().
 create_key() ->
     create_key([]).
 
 
--spec create_key/1 ::
-          (Options :: create_key_opts()) ->
+-spec create_key(Options :: create_key_opts()) ->
           return_val().
 create_key(Options) ->
     create_key(Options, default_config()).
 
 
--spec create_key/2 ::
-          (Options :: create_key_opts(),
+-spec create_key(Options :: create_key_opts(),
            Config :: aws_config()) ->
           return_val().
 create_key(Options, Config) ->
@@ -237,23 +230,20 @@ create_key(Options, Config) ->
 -type decrypt_opt_key() :: encryption_context | grant_tokens.
 
 
--spec decrypt/1 ::
-          (CiphertextBlob :: binary()) ->
+-spec decrypt(CiphertextBlob :: binary()) ->
           return_val().
 decrypt(CiphertextBlob) ->
     decrypt(CiphertextBlob, []).
 
 
--spec decrypt/2 ::
-          (CiphertextBlob :: binary(),
+-spec decrypt(CiphertextBlob :: binary(),
            Options :: decrypt_opts()) ->
           return_val().
 decrypt(CiphertextBlob, Options) ->
     decrypt(CiphertextBlob, Options, default_config()).
 
 
--spec decrypt/3 ::
-          (CiphertextBlob :: binary(),
+-spec decrypt(CiphertextBlob :: binary(),
            Options :: decrypt_opts(),
            Config :: aws_config()) ->
           return_val().
@@ -275,15 +265,13 @@ decrypt(CiphertextBlob, Options, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec delete_alias/1 ::
-          (AliasName :: string()) ->
+-spec delete_alias(AliasName :: string()) ->
           return_val().
 delete_alias(AliasName) ->
     delete_alias(AliasName, default_config()).
 
 
--spec delete_alias/2 ::
-          (AliasName :: string(),
+-spec delete_alias(AliasName :: string(),
            Config :: aws_config()) ->
           return_val().
 delete_alias(AliasName, Config) ->
@@ -303,15 +291,13 @@ delete_alias(AliasName, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec describe_key/1 ::
-          (KeyId :: string()) ->
+-spec describe_key(KeyId :: string()) ->
           return_val().
 describe_key(KeyId) ->
     describe_key(KeyId, default_config()).
 
 
--spec describe_key/2 ::
-          (KeyId :: string(),
+-spec describe_key(KeyId :: string(),
            Config :: aws_config()) ->
           return_val().
 describe_key(KeyId, Config) ->
@@ -331,15 +317,13 @@ describe_key(KeyId, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec disable_key/1 ::
-          (KeyId :: string()) ->
+-spec disable_key(KeyId :: string()) ->
           return_val().
 disable_key(KeyId) ->
     disable_key(KeyId, default_config()).
 
 
--spec disable_key/2 ::
-          (KeyId :: string(),
+-spec disable_key(KeyId :: string(),
            Config :: aws_config()) ->
           return_val().
 disable_key(KeyId, Config) ->
@@ -359,15 +343,13 @@ disable_key(KeyId, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec disable_key_rotation/1 ::
-          (KeyId :: string()) ->
+-spec disable_key_rotation(KeyId :: string()) ->
           return_val().
 disable_key_rotation(KeyId) ->
     disable_key_rotation(KeyId, default_config()).
 
 
--spec disable_key_rotation/2 ::
-          (KeyId :: string(),
+-spec disable_key_rotation(KeyId :: string(),
            Config :: aws_config()) ->
           return_val().
 disable_key_rotation(KeyId, Config) ->
@@ -387,14 +369,12 @@ disable_key_rotation(KeyId, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec enable_key/1 ::
-          (KeyId :: string()) ->
+-spec enable_key(KeyId :: string()) ->
           return_val().
 enable_key(KeyId) ->
     enable_key(KeyId, default_config()).
 
--spec enable_key/2 ::
-          (KeyId :: string(),
+-spec enable_key(KeyId :: string(),
            Config :: aws_config()) ->
           return_val().
 enable_key(KeyId, Config) ->
@@ -414,15 +394,13 @@ enable_key(KeyId, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec enable_key_rotation/1 ::
-          (KeyId :: string()) ->
+-spec enable_key_rotation(KeyId :: string()) ->
           return_val().
 enable_key_rotation(KeyId) ->
     enable_key_rotation(KeyId, default_config()).
 
 
--spec enable_key_rotation/2 ::
-          (KeyId :: string(),
+-spec enable_key_rotation(KeyId :: string(),
            Config :: aws_config()) ->
           return_val().
 enable_key_rotation(KeyId, Config) ->
@@ -447,16 +425,14 @@ enable_key_rotation(KeyId, Config) ->
 -type encrypt_opt_key() :: encryption_context | grant_tokens.
 
 
--spec encrypt/2 ::
-          (KeyId :: string(),
+-spec encrypt(KeyId :: string(),
            Plaintext :: string()) ->
           return_val().
 encrypt(KeyId, Plaintext) ->
     encrypt(KeyId, Plaintext, []).
 
 
--spec encrypt/3 ::
-          (KeyId :: string(),
+-spec encrypt(KeyId :: string(),
            Plaintext :: string(),
            Options :: encrypt_opts()) ->
           return_val().
@@ -464,8 +440,7 @@ encrypt(KeyId, Plaintext, Options) ->
     encrypt(KeyId, Plaintext, Options, default_config()).
 
 
--spec encrypt/4 ::
-          (KeyId :: string(),
+-spec encrypt(KeyId :: string(),
            Plaintext :: string(),
            Options :: encrypt_opts(),
            Config :: aws_config()) ->
@@ -493,16 +468,14 @@ encrypt(KeyId, Plaintext, Options, Config) ->
 -type generate_data_key_opt_key() :: encryption_context | grant_tokens | key_spec | number_of_bytes.
 
 
--spec generate_data_key/2 ::
-          (KeyId :: string(),
+-spec generate_data_key(KeyId :: string(),
            Options :: generate_data_key_opts()) ->
           return_val().
 generate_data_key(KeyId, Options) ->
     generate_data_key(KeyId, Options, default_config()).
 
 
--spec generate_data_key/3 ::
-          (KeyId :: string(),
+-spec generate_data_key(KeyId :: string(),
            Options :: generate_data_key_opts(),
            Config :: aws_config()) ->
           return_val().
@@ -525,16 +498,14 @@ generate_data_key(KeyId, Options, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec generate_data_key_without_plaintext/2 ::
-          (KeyId :: string(),
+-spec generate_data_key_without_plaintext(KeyId :: string(),
            Options :: generate_data_key_opts()) ->
           return_val().
 generate_data_key_without_plaintext(KeyId, Options) ->
     generate_data_key_without_plaintext(KeyId, Options, default_config()).
 
 
--spec generate_data_key_without_plaintext/3 ::
-          (KeyId :: string(),
+-spec generate_data_key_without_plaintext(KeyId :: string(),
            Options :: generate_data_key_opts(),
            Config :: aws_config()) ->
           return_val().
@@ -556,15 +527,13 @@ generate_data_key_without_plaintext(KeyId, Options, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec generate_random/1 ::
-          (NumberOfBytes :: non_neg_integer()) ->
+-spec generate_random(NumberOfBytes :: non_neg_integer()) ->
           return_val().
 generate_random(NumberOfBytes) ->
     generate_random(NumberOfBytes, default_config()).
 
 
--spec generate_random/2 ::
-          (NumberOfBytes :: non_neg_integer(),
+-spec generate_random(NumberOfBytes :: non_neg_integer(),
            Config :: aws_config()) ->
           return_val().
 generate_random(NumberOfBytes, Config) ->
@@ -584,16 +553,14 @@ generate_random(NumberOfBytes, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec get_key_policy/2 ::
-          (KeyId :: string(),
+-spec get_key_policy(KeyId :: string(),
            PolicyName :: string()) ->
           return_val().
 get_key_policy(KeyId, PolicyName) ->
     get_key_policy(KeyId, PolicyName, default_config()).
 
 
--spec get_key_policy/3 ::
-          (KeyId :: string(),
+-spec get_key_policy(KeyId :: string(),
            PolicyName :: string(),
            Config :: aws_config()) ->
           return_val().
@@ -614,15 +581,13 @@ get_key_policy(KeyId, PolicyName, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec get_key_rotation_status/1 ::
-          (KeyId :: string()) ->
+-spec get_key_rotation_status(KeyId :: string()) ->
           return_val().
 get_key_rotation_status(KeyId) ->
     get_key_rotation_status(KeyId, default_config()).
 
 
--spec get_key_rotation_status/2 ::
-          (KeyId :: string(),
+-spec get_key_rotation_status(KeyId :: string(),
            Config :: aws_config()) ->
           return_val().
 get_key_rotation_status(KeyId, Config) ->
@@ -642,22 +607,19 @@ get_key_rotation_status(KeyId, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec list_aliases/0 ::
-          () ->
+-spec list_aliases() ->
           return_val().
 list_aliases() ->
     list_aliases([]).
 
 
--spec list_aliases/1 ::
-          (Options :: pagination_opts()) ->
+-spec list_aliases(Options :: pagination_opts()) ->
           return_val().
 list_aliases(Options) ->
     list_aliases(Options, default_config()).
 
 
--spec list_aliases/2 ::
-          (Options :: pagination_opts(),
+-spec list_aliases(Options :: pagination_opts(),
            Config :: aws_config()) ->
           return_val().
 list_aliases(Options, Config) ->
@@ -677,23 +639,20 @@ list_aliases(Options, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec list_grants/1 ::
-          (KeyId :: string()) ->
+-spec list_grants(KeyId :: string()) ->
           return_val().
 list_grants(KeyId) ->
     list_grants(KeyId, []).
 
 
--spec list_grants/2 ::
-          (KeyId :: string(),
+-spec list_grants(KeyId :: string(),
            Options :: pagination_opts()) ->
           return_val().
 list_grants(KeyId, Options) ->
     list_grants(KeyId, Options, default_config()).
 
 
--spec list_grants/3 ::
-          (KeyId :: string(),
+-spec list_grants(KeyId :: string(),
            Options :: pagination_opts(),
            Config :: aws_config()) ->
           return_val().
@@ -715,23 +674,20 @@ list_grants(KeyId, Options, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec list_key_policies/1 ::
-          (KeyId :: string()) ->
+-spec list_key_policies(KeyId :: string()) ->
           return_val().
 list_key_policies(KeyId) ->
     list_key_policies(KeyId, []).
 
 
--spec list_key_policies/2 ::
-          (KeyId :: string(),
+-spec list_key_policies(KeyId :: string(),
            Options :: pagination_opts()) ->
           return_val().
 list_key_policies(KeyId, Options) ->
     list_key_policies(KeyId, Options, default_config()).
 
 
--spec list_key_policies/3 ::
-          (KeyId :: string(),
+-spec list_key_policies(KeyId :: string(),
            Options :: pagination_opts(),
            Config :: aws_config()) ->
           return_val().
@@ -753,22 +709,19 @@ list_key_policies(KeyId, Options, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec list_keys/0 ::
-          () ->
+-spec list_keys() ->
           return_val().
 list_keys() ->
     list_keys([]).
 
 
--spec list_keys/1 ::
-          (Options :: pagination_opts()) ->
+-spec list_keys(Options :: pagination_opts()) ->
           return_val().
 list_keys(Options) ->
     list_keys(Options, default_config()).
 
 
--spec list_keys/2 ::
-          (Options :: pagination_opts(),
+-spec list_keys(Options :: pagination_opts(),
            Config :: aws_config()) ->
           return_val().
 list_keys(Options, Config) ->
@@ -788,8 +741,7 @@ list_keys(Options, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec put_key_policy/3 ::
-          (KeyId :: string(),
+-spec put_key_policy(KeyId :: string(),
            Policy :: string(),
            PolicyName :: string()) ->
           return_val().
@@ -797,8 +749,7 @@ put_key_policy(KeyId, Policy, PolicyName) ->
     put_key_policy(KeyId, Policy, PolicyName, default_config()).
 
 
--spec put_key_policy/4 ::
-          (KeyId :: string(),
+-spec put_key_policy(KeyId :: string(),
            Policy :: string(),
            PolicyName :: string(),
            Config :: aws_config()) ->
@@ -825,16 +776,14 @@ put_key_policy(KeyId, Policy, PolicyName, Config) ->
 -type re_encrypt_opt_key() :: destination_encryption_context | grant_tokens | source_encryption_context.
 
 
--spec re_encrypt/2 ::
-          (CiphertextBlob :: string(),
+-spec re_encrypt(CiphertextBlob :: string(),
            DestinationKeyId :: string()) ->
           return_val().
 re_encrypt(CiphertextBlob, DestinationKeyId) ->
     re_encrypt(CiphertextBlob, DestinationKeyId, []).
 
 
--spec re_encrypt/3 ::
-          (CiphertextBlob :: string(),
+-spec re_encrypt(CiphertextBlob :: string(),
            DestinationKeyId :: string(),
            Options :: re_encrypt_opts()) ->
           return_val().
@@ -842,8 +791,7 @@ re_encrypt(CiphertextBlob, DestinationKeyId, Options) ->
     re_encrypt(CiphertextBlob, DestinationKeyId, Options, default_config()).
 
 
--spec re_encrypt/4 ::
-          (CiphertextBlob :: string(),
+-spec re_encrypt(CiphertextBlob :: string(),
            DestinationKeyId :: string(),
            Options :: re_encrypt_opts(),
            Config :: aws_config()) ->
@@ -870,15 +818,13 @@ re_encrypt(CiphertextBlob, DestinationKeyId, Options, Config) ->
 -type retire_grant_opt() :: {retire_grant_opt_key(), term()}.
 -type retire_grant_opt_key() :: key_id | grant_id | grant_token.
 
--spec retire_grant/1 ::
-          (Options :: retire_grant_opts()) ->
+-spec retire_grant(Options :: retire_grant_opts()) ->
           return_val().
 retire_grant(Options) ->
     retire_grant(Options, default_config()).
 
 
--spec retire_grant/2 ::
-          (Options :: retire_grant_opts(),
+-spec retire_grant(Options :: retire_grant_opts(),
            Config :: aws_config()) ->
           return_val().
 retire_grant(Options, Config) ->
@@ -898,16 +844,14 @@ retire_grant(Options, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec revoke_grant/2 ::
-          (GrantId :: string(),
+-spec revoke_grant(GrantId :: string(),
            KeyId :: string()) ->
           return_val().
 revoke_grant(GrantId, KeyId) ->
     revoke_grant(GrantId, KeyId, default_config()).
 
 
--spec revoke_grant/3 ::
-          (GrantId :: string(),
+-spec revoke_grant(GrantId :: string(),
            KeyId :: string(),
            Config :: aws_config()) ->
           return_val().
@@ -927,15 +871,13 @@ revoke_grant(GrantId, KeyId, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec update_alias/2 ::
-          (AliasName :: string(),
+-spec update_alias(AliasName :: string(),
            TargetKeyId :: string()) -> return_val().
 update_alias(AliasName, TargetKeyId) ->
     update_alias(AliasName, TargetKeyId, default_config()).
 
 
--spec update_alias/3 ::
-          (AliasName :: string(),
+-spec update_alias(AliasName :: string(),
            TargetKeyId :: string(),
            Config :: aws_config()) -> return_val().
 update_alias(AliasName, TargetKeyId, Config) ->
@@ -955,16 +897,14 @@ update_alias(AliasName, TargetKeyId, Config) ->
 %% ===Example===
 %%
 %%------------------------------------------------------------------------------
--spec update_key_description/2 ::
-          (KeyId :: string(),
+-spec update_key_description(KeyId :: string(),
            Description :: string()) ->
           return_val().
 update_key_description(KeyId, Description) ->
     update_key_description(KeyId, Description, default_config()).
 
 
--spec update_key_description/3 ::
-          (KeyId :: string(),
+-spec update_key_description(KeyId :: string(),
            Description :: string(),
            Config :: aws_config()) ->
           return_val().
@@ -973,8 +913,7 @@ update_key_description(KeyId, Description, Config) ->
     kms_request(Config, "TrentService.UpdateKeyDescription", Json).
 
 
--spec kms_result_fun/1 ::
-          (Request :: aws_request()) -> aws_request().
+-spec kms_result_fun(Request :: aws_request()) -> aws_request().
 kms_result_fun(#aws_request{response_type = ok} = Request) ->
     Request;
 kms_result_fun(#aws_request{response_type = error,
