@@ -33,7 +33,7 @@
 %%
 %% Output is in the form of `{ok, Value}' or `{error, Reason}'. The
 %% format of `Value' is controlled by the `out' option, which defaults
-%% to `simple'. The possible values are: 
+%% to `simple'. The possible values are:
 %%
 %% * `simple' - The most interesting part of the output. For example
 %% `get_item' will return the item.
@@ -202,25 +202,25 @@
 %%% Library initialization.
 %%%------------------------------------------------------------------------------
 
--spec(new/2 :: (string(), string()) -> aws_config()).
+-spec(new(string(), string()) -> aws_config()).
 new(AccessKeyID, SecretAccessKey) ->
     #aws_config{access_key_id=AccessKeyID,
                 secret_access_key=SecretAccessKey}.
 
--spec(new/3 :: (string(), string(), string()) -> aws_config()).
+-spec(new(string(), string(), string()) -> aws_config()).
 new(AccessKeyID, SecretAccessKey, Host) ->
     #aws_config{access_key_id=AccessKeyID,
                 secret_access_key=SecretAccessKey,
                 ddb_host=Host}.
 
--spec(new/4 :: (string(), string(), string(), non_neg_integer()) -> aws_config()).
+-spec(new(string(), string(), string(), non_neg_integer()) -> aws_config()).
 new(AccessKeyID, SecretAccessKey, Host, Port) ->
     #aws_config{access_key_id=AccessKeyID,
                 secret_access_key=SecretAccessKey,
                 ddb_host=Host,
                 ddb_port=Port}.
 
--spec(new/5 :: (string(), string(), string(), non_neg_integer(), string()) -> aws_config()).
+-spec(new(string(), string(), string(), non_neg_integer(), string()) -> aws_config()).
 new(AccessKeyID, SecretAccessKey, Host, Port, Scheme) ->
     #aws_config{access_key_id=AccessKeyID,
                 secret_access_key=SecretAccessKey,
@@ -228,22 +228,22 @@ new(AccessKeyID, SecretAccessKey, Host, Port, Scheme) ->
                 ddb_port=Port,
                 ddb_scheme=Scheme}.
 
--spec(configure/2 :: (string(), string()) -> ok).
+-spec(configure(string(), string()) -> ok).
 configure(AccessKeyID, SecretAccessKey) ->
     put(aws_config, new(AccessKeyID, SecretAccessKey)),
     ok.
 
--spec(configure/3 :: (string(), string(), string()) -> ok).
+-spec(configure(string(), string(), string()) -> ok).
 configure(AccessKeyID, SecretAccessKey, Host) ->
     put(aws_config, new(AccessKeyID, SecretAccessKey, Host)),
     ok.
 
--spec(configure/4 :: (string(), string(), string(), non_neg_integer()) -> ok).
+-spec(configure(string(), string(), string(), non_neg_integer()) -> ok).
 configure(AccessKeyID, SecretAccessKey, Host, Port) ->
     put(aws_config, new(AccessKeyID, SecretAccessKey, Host, Port)),
     ok.
 
--spec(configure/5 :: (string(), string(), string(), non_neg_integer(), string()) -> ok).
+-spec(configure(string(), string(), string(), non_neg_integer(), string()) -> ok).
 configure(AccessKeyID, SecretAccessKey, Host, Port, Scheme) ->
     put(aws_config, new(AccessKeyID, SecretAccessKey, Host, Port, Scheme)),
     ok.
@@ -316,7 +316,7 @@ default_config() -> erlcloud_aws:default_config().
 
 -type conditional_op() :: 'and' | 'or'.
 
--type comparison_op() :: eq | ne | le | lt | ge | gt | not_null | null | contains | not_contains | 
+-type comparison_op() :: eq | ne | le | lt | ge | gt | not_null | null | contains | not_contains |
                          begins_with | in | between.
 
 -type condition() :: {attr_name(), not_null | null} |
@@ -611,7 +611,7 @@ undynamize_number(Value, _) ->
         false ->
             list_to_integer(String)
     end.
-            
+
 -spec undynamize_value(json_attr_value(), undynamize_opts()) -> out_attr_value().
 undynamize_value({<<"S">>, Value}, _) when is_binary(Value) ->
     Value;
@@ -638,7 +638,7 @@ undynamize_value({<<"M">>, Map}, Opts) ->
 undynamize_attr({Name, [ValueJson]}, Opts) ->
     {Name, undynamize_value(ValueJson, Opts)}.
 
--spec undynamize_object(fun((json_pair(), undynamize_opts()) -> A), 
+-spec undynamize_object(fun((json_pair(), undynamize_opts()) -> A),
                         [json_pair()] | [{}], undynamize_opts()) -> [A].
 undynamize_object(_, [{}], _) ->
     %% jsx returns [{}] for empty objects
@@ -698,10 +698,10 @@ undynamize_attr_defs(V, Opts) ->
     [{proplists:get_value(<<"AttributeName">>, I),
       undynamize_type(proplists:get_value(<<"AttributeType">>, I), Opts)}
      || I <- V].
-    
+
 key_name(Key) ->
     proplists:get_value(<<"AttributeName">>, Key).
-    
+
 -spec undynamize_key_schema([json_item()], undynamize_opts()) -> key_schema().
 undynamize_key_schema([HashKey], _) ->
     key_name(HashKey);
@@ -741,8 +741,8 @@ undynamize_table_status(<<"CREATING">>, _) -> creating;
 undynamize_table_status(<<"UPDATING">>, _) -> updating;
 undynamize_table_status(<<"DELETING">>, _) -> deleting;
 undynamize_table_status(<<"ACTIVE">>, _)   -> active.
-    
--type field_table() :: [{binary(), pos_integer(), 
+
+-type field_table() :: [{binary(), pos_integer(),
                          fun((jsx:json_term(), undynamize_opts()) -> term())}].
 
 -spec undynamize_folder(field_table(), json_pair(), undynamize_opts(), tuple()) -> tuple().
@@ -930,7 +930,7 @@ return_consumed_capacity_opt() ->
 
 -spec return_item_collection_metrics_opt() -> opt_table_entry().
 return_item_collection_metrics_opt() ->
-    {return_item_collection_metrics, <<"ReturnItemCollectionMetrics">>, 
+    {return_item_collection_metrics, <<"ReturnItemCollectionMetrics">>,
      fun dynamize_return_item_collection_metrics/1}.
 
 %%%------------------------------------------------------------------------------
@@ -939,7 +939,7 @@ return_item_collection_metrics_opt() ->
 -type ddb_return(Record, Simple) :: {ok, jsx:json_term() | Record | Simple} | {error, term()}.
 -type undynamize_fun() :: fun((jsx:json_term(), undynamize_opts()) -> tuple()).
 
--spec out(erlcloud_ddb_impl:json_return(), undynamize_fun(), ddb_opts()) 
+-spec out(erlcloud_ddb_impl:json_return(), undynamize_fun(), ddb_opts())
          -> {ok, jsx:json_term() | tuple()} |
             {simple, term()} |
             {error, term()}.
@@ -958,12 +958,12 @@ out({ok, Json}, Undynamize, Opts) ->
     end.
 
 %% Returns specified field of tuple for simple return
--spec out(erlcloud_ddb_impl:json_return(), undynamize_fun(), ddb_opts(), pos_integer()) 
+-spec out(erlcloud_ddb_impl:json_return(), undynamize_fun(), ddb_opts(), pos_integer())
          -> ok_return(term()).
 out(Result, Undynamize, Opts, Index) ->
     out(Result, Undynamize, Opts, Index, {error, no_return}).
 
--spec out(erlcloud_ddb_impl:json_return(), undynamize_fun(), ddb_opts(), pos_integer(), ok_return(term())) 
+-spec out(erlcloud_ddb_impl:json_return(), undynamize_fun(), ddb_opts(), pos_integer(), ok_return(term()))
          -> ok_return(term()).
 out(Result, Undynamize, Opts, Index, Default) ->
     case out(Result, Undynamize, Opts) of
@@ -1058,7 +1058,7 @@ global_secondary_index_description_record() ->
       {<<"ProvisionedThroughput">>, #ddb2_global_secondary_index_description.provisioned_throughput,
        fun(V, Opts) -> undynamize_record(provisioned_throughput_description_record(), V, Opts) end}
      ]}.
-    
+
 -spec local_secondary_index_description_record() -> record_desc().
 local_secondary_index_description_record() ->
     {#ddb2_local_secondary_index_description{},
@@ -1130,7 +1130,7 @@ batch_get_item_request_item_opts() ->
 -type batch_get_item_request_item() :: {table_name(), [key(),...], batch_get_item_request_item_opts()} |
                                        {table_name(), [key(),...]}.
 
--spec dynamize_batch_get_item_request_item(batch_get_item_request_item()) 
+-spec dynamize_batch_get_item_request_item(batch_get_item_request_item())
                                           -> json_pair().
 dynamize_batch_get_item_request_item({Table, Keys}) ->
     dynamize_batch_get_item_request_item({Table, Keys, []});
@@ -1143,7 +1143,7 @@ dynamize_batch_get_item_request_item({Table, Keys, Opts}) ->
 dynamize_batch_get_item_request_items(Request) ->
     dynamize_maybe_list(fun dynamize_batch_get_item_request_item/1, Request).
 
--spec batch_get_item_request_item_folder({binary(), term()}, batch_get_item_request_item()) 
+-spec batch_get_item_request_item_folder({binary(), term()}, batch_get_item_request_item())
                                         -> batch_get_item_request_item().
 batch_get_item_request_item_folder({<<"Keys">>, Keys}, {Table, _, Opts}) ->
     {Table, [undynamize_typed_key(K, []) || K <- Keys], Opts};
@@ -1169,7 +1169,7 @@ undynamize_batch_get_item_response({Table, Json}, Opts) ->
 undynamize_batch_get_item_responses(Response, Opts) ->
     undynamize_object(fun undynamize_batch_get_item_response/2, Response, Opts).
 
--spec batch_get_item_record() -> record_desc().    
+-spec batch_get_item_record() -> record_desc().
 batch_get_item_record() ->
     {#ddb2_batch_get_item{},
      [{<<"ConsumedCapacity">>, #ddb2_batch_get_item.consumed_capacity, fun undynamize_consumed_capacity_list/2},
@@ -1192,7 +1192,7 @@ batch_get_item(RequestItems, Opts) ->
     batch_get_item(RequestItems, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchGetItem.html]
 %%
@@ -1203,13 +1203,13 @@ batch_get_item(RequestItems, Opts) ->
 %% `
 %% {ok, Record} =
 %%     erlcloud_ddb2:batch_get_item(
-%%       [{<<"Forum">>, 
+%%       [{<<"Forum">>,
 %%         [{<<"Name">>, {s, <<"Amazon DynamoDB">>}},
-%%          {<<"Name">>, {s, <<"Amazon RDS">>}}, 
+%%          {<<"Name">>, {s, <<"Amazon RDS">>}},
 %%          {<<"Name">>, {s, <<"Amazon Redshift">>}}],
 %%         [{projection_expression, <<"Name, Threads, Messages, Views">>}]},
-%%        {<<"Thread">>, 
-%%         [[{<<"ForumName">>, {s, <<"Amazon DynamoDB">>}}, 
+%%        {<<"Thread">>,
+%%         [[{<<"ForumName">>, {s, <<"Amazon DynamoDB">>}},
 %%           {<<"Subject">>, {s, <<"Concurrent reads">>}}]],
 %%         [{projection_expression, <<"Tags, Message">>}]}],
 %%       [{return_consumed_capacity, total},
@@ -1220,7 +1220,7 @@ batch_get_item(RequestItems, Opts) ->
 %%
 %% @end
 %%------------------------------------------------------------------------------
--spec batch_get_item(batch_get_item_request_items(), batch_get_item_opts(), aws_config()) -> 
+-spec batch_get_item(batch_get_item_request_items(), batch_get_item_opts(), aws_config()) ->
                             batch_get_item_return().
 batch_get_item(RequestItems, Opts, Config) ->
     {AwsOpts, DdbOpts} = opts(batch_get_item_opts(), Opts),
@@ -1229,8 +1229,8 @@ batch_get_item(RequestItems, Opts, Config) ->
                "DynamoDB_20120810.BatchGetItem",
                [{<<"RequestItems">>, dynamize_batch_get_item_request_items(RequestItems)}]
                 ++ AwsOpts),
-    case out(Return, 
-             fun(Json, UOpts) -> undynamize_record(batch_get_item_record(), Json, UOpts) end, 
+    case out(Return,
+             fun(Json, UOpts) -> undynamize_record(batch_get_item_record(), Json, UOpts) end,
              DdbOpts) of
         {simple, #ddb2_batch_get_item{unprocessed_keys = [_|_]}} ->
             %% Return an error on unprocessed results.
@@ -1267,7 +1267,7 @@ dynamize_batch_write_item_request({put, Item}) ->
 dynamize_batch_write_item_request({delete, Key}) ->
     [{<<"DeleteRequest">>, [{<<"Key">>, dynamize_key(Key)}]}].
 
--spec dynamize_batch_write_item_request_item(batch_write_item_request_item()) 
+-spec dynamize_batch_write_item_request_item(batch_write_item_request_item())
                                           -> json_pair().
 dynamize_batch_write_item_request_item({Table, Requests}) ->
     {Table, [dynamize_batch_write_item_request(R) || R <- Requests]}.
@@ -1277,7 +1277,7 @@ dynamize_batch_write_item_request_item({Table, Requests}) ->
 dynamize_batch_write_item_request_items(Request) ->
     dynamize_maybe_list(fun dynamize_batch_write_item_request_item/1, Request).
 
--spec batch_write_item_request_folder([{binary(), term()}], batch_write_item_request_item()) 
+-spec batch_write_item_request_folder([{binary(), term()}], batch_write_item_request_item())
                                      -> batch_write_item_request_item().
 batch_write_item_request_folder([{<<"PutRequest">>, [{<<"Item">>, Item}]}], {Table, Requests}) ->
     {Table, [{put, undynamize_item_typed(Item, [])} | Requests]};
@@ -1319,7 +1319,7 @@ batch_write_item(RequestItems, Opts) ->
     batch_write_item(RequestItems, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html]
 %%
@@ -1330,7 +1330,7 @@ batch_write_item(RequestItems, Opts) ->
 %% `
 %% {ok, Record} =
 %%     erlcloud_ddb2:batch_write_item(
-%%       [{<<"Forum">>, 
+%%       [{<<"Forum">>,
 %%         [{put, [{<<"Name">>, {s, <<"Amazon DynamoDB">>}},
 %%                 {<<"Category">>, {s, <<"Amazon Web Services">>}}]},
 %%          {put, [{<<"Name">>, {s, <<"Amazon RDS">>}},
@@ -1345,7 +1345,7 @@ batch_write_item(RequestItems, Opts) ->
 %% '
 %% @end
 %%------------------------------------------------------------------------------
--spec batch_write_item(batch_write_item_request_items(), batch_write_item_opts(), aws_config()) -> 
+-spec batch_write_item(batch_write_item_request_items(), batch_write_item_opts(), aws_config()) ->
                               batch_write_item_return().
 batch_write_item(RequestItems, Opts, Config) ->
     {AwsOpts, DdbOpts} = opts(batch_write_item_opts(), Opts),
@@ -1354,11 +1354,11 @@ batch_write_item(RequestItems, Opts, Config) ->
                "DynamoDB_20120810.BatchWriteItem",
                [{<<"RequestItems">>, dynamize_batch_write_item_request_items(RequestItems)}]
                ++ AwsOpts),
-    case out(Return, 
-             fun(Json, UOpts) -> undynamize_record(batch_write_item_record(), Json, UOpts) end, 
+    case out(Return,
+             fun(Json, UOpts) -> undynamize_record(batch_write_item_record(), Json, UOpts) end,
              DdbOpts) of
         {simple, #ddb2_batch_write_item{unprocessed_items = [_|_]}} ->
-            %% TODO resend unprocessed items automatically (or controlled by option). 
+            %% TODO resend unprocessed items automatically (or controlled by option).
             %% For now return an error - you can handle manually if you don't use simple.
             {error, unprocessed};
         {simple, Record} -> {ok, Record};
@@ -1395,7 +1395,7 @@ dynamize_global_secondary_indexes(Value) ->
 
 -spec create_table_opts(key_schema()) -> opt_table().
 create_table_opts(KeySchema) ->
-    [{local_secondary_indexes, <<"LocalSecondaryIndexes">>, 
+    [{local_secondary_indexes, <<"LocalSecondaryIndexes">>,
       fun(V) -> dynamize_local_secondary_indexes(KeySchema, V) end},
      {global_secondary_indexes, <<"GlobalSecondaryIndexes">>,
       fun dynamize_global_secondary_indexes/1},
@@ -1404,9 +1404,9 @@ create_table_opts(KeySchema) ->
 -spec create_table_record() -> record_desc().
 create_table_record() ->
     {#ddb2_create_table{},
-     [{<<"TableDescription">>, #ddb2_create_table.table_description, 
+     [{<<"TableDescription">>, #ddb2_create_table.table_description,
        fun(V, Opts) -> undynamize_record(table_description_record(), V, Opts) end}
-     ]}. 
+     ]}.
 
 -type create_table_return() :: ddb_return(#ddb2_create_table{}, #ddb2_table_description{}).
 
@@ -1422,7 +1422,7 @@ create_table(Table, AttrDefs, KeySchema, ReadUnits, WriteUnits, Opts) ->
     create_table(Table, AttrDefs, KeySchema, ReadUnits, WriteUnits, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_CreateTable.html]
 %%
@@ -1431,8 +1431,8 @@ create_table(Table, AttrDefs, KeySchema, ReadUnits, WriteUnits, Opts) ->
 %% Create a table with hash key "ForumName" and range key "Subject"
 %% with a local secondary index on "LastPostDateTime"
 %% and a global secondary index on "Subject" as hash key and "LastPostDateTime"
-%% as range key, read and write capacity 10, projecting all fields 
-%% 
+%% as range key, read and write capacity 10, projecting all fields
+%%
 %% `
 %% {ok, Description} =
 %%     erlcloud_ddb2:create_table(
@@ -1441,7 +1441,7 @@ create_table(Table, AttrDefs, KeySchema, ReadUnits, WriteUnits, Opts) ->
 %%        {<<"Subject">>, s},
 %%        {<<"LastPostDateTime">>, s}],
 %%       {<<"ForumName">>, <<"Subject">>},
-%%       5, 
+%%       5,
 %%       5,
 %%       [{local_secondary_indexes,
 %%         [{<<"LastPostIndex">>, <<"LastPostDateTime">>, keys_only}]},
@@ -1453,7 +1453,7 @@ create_table(Table, AttrDefs, KeySchema, ReadUnits, WriteUnits, Opts) ->
 %% @end
 %%------------------------------------------------------------------------------
 -spec create_table(table_name(), attr_defs(), key_schema(), read_units(), write_units(),
-                   create_table_opts(), aws_config()) 
+                   create_table_opts(), aws_config())
                   -> create_table_return().
 create_table(Table, AttrDefs, KeySchema, ReadUnits, WriteUnits, Opts, Config) ->
     {AwsOpts, DdbOpts} = opts(create_table_opts(KeySchema), Opts),
@@ -1461,11 +1461,11 @@ create_table(Table, AttrDefs, KeySchema, ReadUnits, WriteUnits, Opts, Config) ->
                Config,
                "DynamoDB_20120810.CreateTable",
                [{<<"TableName">>, Table},
-                {<<"AttributeDefinitions">>, dynamize_attr_defs(AttrDefs)}, 
+                {<<"AttributeDefinitions">>, dynamize_attr_defs(AttrDefs)},
                 {<<"KeySchema">>, dynamize_key_schema(KeySchema)},
                 {<<"ProvisionedThroughput">>, dynamize_provisioned_throughput({ReadUnits, WriteUnits})}]
                ++ AwsOpts),
-    out(Return, fun(Json, UOpts) -> undynamize_record(create_table_record(), Json, UOpts) end, 
+    out(Return, fun(Json, UOpts) -> undynamize_record(create_table_record(), Json, UOpts) end,
         DdbOpts, #ddb2_create_table.table_description).
 
 %%%------------------------------------------------------------------------------
@@ -1476,7 +1476,7 @@ create_table(Table, AttrDefs, KeySchema, ReadUnits, WriteUnits, Opts, Config) ->
                            expression_attribute_values_opt() |
                            condition_expression_opt() |
                            conditional_op_opt() |
-                           expected_opt() | 
+                           expected_opt() |
                            {return_values, none | all_old} |
                            return_consumed_capacity_opt() |
                            return_item_collection_metrics_opt() |
@@ -1499,7 +1499,7 @@ delete_item_record() ->
     {#ddb2_delete_item{},
      [{<<"Attributes">>, #ddb2_delete_item.attributes, fun undynamize_item/2},
       {<<"ConsumedCapacity">>, #ddb2_delete_item.consumed_capacity, fun undynamize_consumed_capacity/2},
-      {<<"ItemCollectionMetrics">>, #ddb2_delete_item.item_collection_metrics, 
+      {<<"ItemCollectionMetrics">>, #ddb2_delete_item.item_collection_metrics,
        fun undynamize_item_collection_metrics/2}
      ]}.
 
@@ -1514,7 +1514,7 @@ delete_item(Table, Key, Opts) ->
     delete_item(Table, Key, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DeleteItem.html]
 %%
@@ -1524,9 +1524,9 @@ delete_item(Table, Key, Opts) ->
 %% "Replies" attribute.
 %%
 %% `
-%% {ok, Item} = 
+%% {ok, Item} =
 %%     erlcloud_ddb2:delete_item(
-%%       <<"Thread">>, 
+%%       <<"Thread">>,
 %%       [{<<"ForumName">>, {s, <<"Amazon DynamoDB">>}},
 %%        {<<"Subject">>, {s, <<"How do I update multiple items?">>}}],
 %%       [{return_values, all_old},
@@ -1537,9 +1537,9 @@ delete_item(Table, Key, Opts) ->
 %% ConditionalOperator or Expected parameters.
 %%
 %% `
-%% {ok, Item} = 
+%% {ok, Item} =
 %%     erlcloud_ddb2:delete_item(
-%%       <<"Thread">>, 
+%%       <<"Thread">>,
 %%       [{<<"ForumName">>, {s, <<"Amazon DynamoDB">>}},
 %%        {<<"Subject">>, {s, <<"How do I update multiple items?">>}}],
 %%       [{return_values, all_old},
@@ -1558,7 +1558,7 @@ delete_item(Table, Key, Opts, Config) ->
                [{<<"TableName">>, Table},
                 {<<"Key">>, dynamize_key(Key)}]
                ++ AwsOpts),
-    out(Return, fun(Json, UOpts) -> undynamize_record(delete_item_record(), Json, UOpts) end, DdbOpts, 
+    out(Return, fun(Json, UOpts) -> undynamize_record(delete_item_record(), Json, UOpts) end, DdbOpts,
         #ddb2_delete_item.attributes, {ok, []}).
 
 %%%------------------------------------------------------------------------------
@@ -1570,7 +1570,7 @@ delete_table_record() ->
     {#ddb2_delete_table{},
      [{<<"TableDescription">>, #ddb2_delete_table.table_description,
        fun(V, Opts) -> undynamize_record(table_description_record(), V, Opts) end}
-     ]}. 
+     ]}.
 
 -type delete_table_return() :: ddb_return(#ddb2_delete_table{}, #ddb2_table_description{}).
 
@@ -1583,7 +1583,7 @@ delete_table(Table, Opts) ->
     delete_table(Table, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DeleteTable.html]
 %%
@@ -1604,7 +1604,7 @@ delete_table(Table, Opts, Config) ->
                Config,
                "DynamoDB_20120810.DeleteTable",
                [{<<"TableName">>, Table}]),
-    out(Return, fun(Json, UOpts) -> undynamize_record(delete_table_record(), Json, UOpts) end, 
+    out(Return, fun(Json, UOpts) -> undynamize_record(delete_table_record(), Json, UOpts) end,
         DdbOpts, #ddb2_delete_table.table_description).
 
 %%%------------------------------------------------------------------------------
@@ -1666,9 +1666,9 @@ describe_limits(Opts, Config) ->
 -spec describe_table_record() -> record_desc().
 describe_table_record() ->
     {#ddb2_describe_table{},
-     [{<<"Table">>, #ddb2_describe_table.table, 
+     [{<<"Table">>, #ddb2_describe_table.table,
        fun(V, Opts) -> undynamize_record(table_description_record(), V, Opts) end}
-     ]}. 
+     ]}.
 
 -type describe_table_return() :: ddb_return(#ddb2_describe_table{}, #ddb2_table_description{}).
 
@@ -1681,7 +1681,7 @@ describe_table(Table, Opts) ->
     describe_table(Table, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DescribeTable.html]
 %%
@@ -1702,7 +1702,7 @@ describe_table(Table, Opts, Config) ->
                Config,
                "DynamoDB_20120810.DescribeTable",
                [{<<"TableName">>, Table}]),
-    out(Return, fun(Json, UOpts) -> undynamize_record(describe_table_record(), Json, UOpts) end, 
+    out(Return, fun(Json, UOpts) -> undynamize_record(describe_table_record(), Json, UOpts) end,
         DdbOpts, #ddb2_describe_table.table).
 
 %%%------------------------------------------------------------------------------
@@ -1743,7 +1743,7 @@ get_item(Table, Key, Opts) ->
     get_item(Table, Key, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_GetItem.html]
 %%
@@ -1752,10 +1752,10 @@ get_item(Table, Key, Opts) ->
 %% Get selected attributes from an item in the "Thread" table.
 %%
 %% `
-%% {ok, Item} = 
+%% {ok, Item} =
 %%     erlcloud_ddb2:get_item(
 %%       <<"Thread">>,
-%%       [{<<"ForumName">>, {s, <<"Amazon DynamoDB">>}}, 
+%%       [{<<"ForumName">>, {s, <<"Amazon DynamoDB">>}},
 %%        {<<"Subject">>, {s, <<"How do I update multiple items?">>}}],
 %%       [{projection_expression, <<"LastPostDateTime, Message, Tags">>},
 %%        consistent_read,
@@ -1772,14 +1772,14 @@ get_item(Table, Key, Opts, Config) ->
                [{<<"TableName">>, Table},
                 {<<"Key">>, dynamize_key(Key)}]
                ++ AwsOpts),
-    out(Return, fun(Json, UOpts) -> undynamize_record(get_item_record(), Json, UOpts) end, DdbOpts, 
+    out(Return, fun(Json, UOpts) -> undynamize_record(get_item_record(), Json, UOpts) end, DdbOpts,
         #ddb2_get_item.item, {ok, []}).
 
 %%%------------------------------------------------------------------------------
 %%% ListTables
 %%%------------------------------------------------------------------------------
 
--type list_tables_opt() :: {limit, pos_integer()} | 
+-type list_tables_opt() :: {limit, pos_integer()} |
                            {exclusive_start_table_name, table_name() | undefined} |
                            out_opt().
 -type list_tables_opts() :: [list_tables_opt()].
@@ -1807,7 +1807,7 @@ list_tables(Opts) ->
     list_tables(Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_ListTables.html]
 %%
@@ -1816,9 +1816,9 @@ list_tables(Opts) ->
 %% Get the next 3 table names after "Forum".
 %%
 %% `
-%% {ok, Tables} = 
+%% {ok, Tables} =
 %%     erlcloud_ddb2:list_tables(
-%%       [{limit, 3}, 
+%%       [{limit, 3},
 %%        {exclusive_start_table_name, <<"Forum">>}]),
 %% '
 %% @end
@@ -1830,7 +1830,7 @@ list_tables(Opts, Config) ->
                Config,
                "DynamoDB_20120810.ListTables",
                AwsOpts),
-    out(Return, fun(Json, UOpts) -> undynamize_record(list_tables_record(), Json, UOpts) end, 
+    out(Return, fun(Json, UOpts) -> undynamize_record(list_tables_record(), Json, UOpts) end,
         DdbOpts, #ddb2_list_tables.table_names, {ok, []}).
 
 %%%------------------------------------------------------------------------------
@@ -1841,7 +1841,7 @@ list_tables(Opts, Config) ->
                         expression_attribute_values_opt() |
                         condition_expression_opt() |
                         conditional_op_opt() |
-                        expected_opt() | 
+                        expected_opt() |
                         {return_values, none | all_old} |
                         return_consumed_capacity_opt() |
                         return_item_collection_metrics_opt() |
@@ -1864,7 +1864,7 @@ put_item_record() ->
     {#ddb2_put_item{},
      [{<<"Attributes">>, #ddb2_put_item.attributes, fun undynamize_item/2},
       {<<"ConsumedCapacity">>, #ddb2_put_item.consumed_capacity, fun undynamize_consumed_capacity/2},
-      {<<"ItemCollectionMetrics">>, #ddb2_put_item.item_collection_metrics, 
+      {<<"ItemCollectionMetrics">>, #ddb2_put_item.item_collection_metrics,
        fun undynamize_item_collection_metrics/2}
      ]}.
 
@@ -1879,7 +1879,7 @@ put_item(Table, Item, Opts) ->
     put_item(Table, Item, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_PutItem.html]
 %%
@@ -1888,15 +1888,15 @@ put_item(Table, Item, Opts) ->
 %% Put an item in the "Thread" table if it does not already exist.
 %%
 %% `
-%% {ok, []} = 
+%% {ok, []} =
 %%     erlcloud_ddb2:put_item(
-%%       <<"Thread">>, 
+%%       <<"Thread">>,
 %%       [{<<"LastPostedBy">>, <<"fred@example.com">>},
 %%        {<<"ForumName">>, <<"Amazon DynamoDB">>},
 %%        {<<"LastPostDateTime">>, <<"201303190422">>},
 %%        {<<"Tags">>, {ss, [<<"Update">>, <<"Multiple Items">>, <<"HelpMe">>]}},
 %%        {<<"Subject">>, <<"How do I update multiple items?">>},
-%%        {<<"Message">>, 
+%%        {<<"Message">>,
 %%         <<"I want to update multiple items in a single API call. What is the best way to do that?">>}],
 %%       [{condition_expression, <<"ForumName <> :f and Subject <> :s">>},
 %%        {expression_attribute_values,
@@ -1907,15 +1907,15 @@ put_item(Table, Item, Opts) ->
 %% The ConditionExpression option can be used in place of the legacy Expected parameter.
 %%
 %% `
-%% {ok, []} = 
+%% {ok, []} =
 %%     erlcloud_ddb2:put_item(
-%%       <<"Thread">>, 
+%%       <<"Thread">>,
 %%       [{<<"LastPostedBy">>, <<"fred@example.com">>},
 %%        {<<"ForumName">>, <<"Amazon DynamoDB">>},
 %%        {<<"LastPostDateTime">>, <<"201303190422">>},
 %%        {<<"Tags">>, {ss, [<<"Update">>, <<"Multiple Items">>, <<"HelpMe">>]}},
 %%        {<<"Subject">>, <<"How do I update multiple items?">>},
-%%        {<<"Message">>, 
+%%        {<<"Message">>,
 %%         <<"I want to update multiple items in a single API call. What is the best way to do that?">>}],
 %%       [{condition_expression, <<"#forum <> :forum AND attribute_not_exists(#subject)">>},
 %%        {expression_attribute_names, [{<<"#forum">>, <<"ForumName">>}, {<<"#subject">>, <<"Subject">>}]},
@@ -1933,7 +1933,7 @@ put_item(Table, Item, Opts, Config) ->
                [{<<"TableName">>, Table},
                 {<<"Item">>, dynamize_item(Item)}]
                ++ AwsOpts),
-    out(Return, fun(Json, UOpts) -> undynamize_record(put_item_record(), Json, UOpts) end, DdbOpts, 
+    out(Return, fun(Json, UOpts) -> undynamize_record(put_item_record(), Json, UOpts) end, DdbOpts,
         #ddb2_put_item.attributes, {ok, []}).
 
 %%%------------------------------------------------------------------------------
@@ -2002,7 +2002,7 @@ q(Table, KeyConditionsOrExpression, Opts) ->
     q(Table, KeyConditionsOrExpression, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Query.html]
 %%
@@ -2044,7 +2044,7 @@ q(Table, KeyConditionsOrExpression, Opts, Config) ->
                [{<<"TableName">>, Table},
                 dynamize_q_key_conditions_or_expression(KeyConditionsOrExpression)]
                ++ AwsOpts),
-    out(Return, fun(Json, UOpts) -> undynamize_record(q_record(), Json, UOpts) end, DdbOpts, 
+    out(Return, fun(Json, UOpts) -> undynamize_record(q_record(), Json, UOpts) end, DdbOpts,
         #ddb2_q.items, {ok, []}).
 
 %%%------------------------------------------------------------------------------
@@ -2109,7 +2109,7 @@ scan(Table, Opts) ->
     scan(Table, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Scan.html]
 %%
@@ -2118,10 +2118,10 @@ scan(Table, Opts) ->
 %% Return all items in the "Reply" table.
 %%
 %% `
-%% {ok, Record} = 
+%% {ok, Record} =
 %%     erlcloud_ddb2:scan(
-%%       <<"Reply">>, 
-%%       [{return_consumed_capacity, total}, 
+%%       <<"Reply">>,
+%%       [{return_consumed_capacity, total},
 %%        {out, record}]),
 %% '
 %% @end
@@ -2134,7 +2134,7 @@ scan(Table, Opts, Config) ->
                "DynamoDB_20120810.Scan",
                [{<<"TableName">>, Table}]
                ++ AwsOpts),
-    out(Return, fun(Json, UOpts) -> undynamize_record(scan_record(), Json, UOpts) end, DdbOpts, 
+    out(Return, fun(Json, UOpts) -> undynamize_record(scan_record(), Json, UOpts) end, DdbOpts,
         #ddb2_scan.items, {ok, []}).
 
 %%%------------------------------------------------------------------------------
@@ -2180,7 +2180,7 @@ dynamize_update_item_updates_or_expression(Updates) ->
                            expression_attribute_values_opt() |
                            condition_expression_opt() |
                            conditional_op_opt() |
-                           expected_opt() | 
+                           expected_opt() |
                            {return_values, return_value()} |
                            return_consumed_capacity_opt() |
                            return_item_collection_metrics_opt() |
@@ -2203,7 +2203,7 @@ update_item_record() ->
     {#ddb2_update_item{},
      [{<<"Attributes">>, #ddb2_update_item.attributes, fun undynamize_item/2},
       {<<"ConsumedCapacity">>, #ddb2_update_item.consumed_capacity, fun undynamize_consumed_capacity/2},
-      {<<"ItemCollectionMetrics">>, #ddb2_update_item.item_collection_metrics, 
+      {<<"ItemCollectionMetrics">>, #ddb2_update_item.item_collection_metrics,
        fun undynamize_item_collection_metrics/2}
      ]}.
 
@@ -2218,7 +2218,7 @@ update_item(Table, Key, UpdatesOrExpression, Opts) ->
     update_item(Table, Key, UpdatesOrExpression, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_UpdateItem.html]
 %%
@@ -2232,9 +2232,9 @@ update_item(Table, Key, UpdatesOrExpression, Opts) ->
 %% if it has the expected previous value.
 %%
 %% `
-%% {ok, Item} = 
+%% {ok, Item} =
 %%     erlcloud_ddb2:update_item(
-%%       <<"Thread">>, 
+%%       <<"Thread">>,
 %%       [{<<"ForumName">>, {s, <<"Amazon DynamoDB">>}},
 %%        {<<"Subject">>, {s, <<"How do I update multiple items?">>}}],
 %%       <<"set LastPostedBy = :val1">>,
@@ -2257,7 +2257,7 @@ update_item(Table, Key, UpdatesOrExpression, Opts, Config) ->
                 {<<"Key">>, dynamize_key(Key)}]
                ++ dynamize_update_item_updates_or_expression(UpdatesOrExpression)
                ++ AwsOpts),
-    out(Return, fun(Json, UOpts) -> undynamize_record(update_item_record(), Json, UOpts) end, DdbOpts, 
+    out(Return, fun(Json, UOpts) -> undynamize_record(update_item_record(), Json, UOpts) end, DdbOpts,
         #ddb2_update_item.attributes, {ok, []}).
 
 %%%------------------------------------------------------------------------------
@@ -2315,7 +2315,7 @@ update_table(Table, Opts) ->
     update_table(Table, Opts, default_config()).
 
 %%------------------------------------------------------------------------------
-%% @doc 
+%% @doc
 %% DynamoDB API:
 %% [http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_UpdateTable.html]
 %%
@@ -2339,18 +2339,18 @@ update_table(Table, Opts, Config) when is_list(Opts) ->
                Config,
                "DynamoDB_20120810.UpdateTable",
                [{<<"TableName">>, Table} | AwsOpts]),
-    out(Return, fun(Json, UOpts) -> undynamize_record(update_table_record(), Json, UOpts) end, 
+    out(Return, fun(Json, UOpts) -> undynamize_record(update_table_record(), Json, UOpts) end,
         DdbOpts, #ddb2_update_table.table_description);
 update_table(Table, ReadUnits, WriteUnits) ->
     update_table(Table, ReadUnits, WriteUnits, [], default_config()).
 
--spec update_table(table_name(), read_units(), write_units(), update_table_opts()) 
+-spec update_table(table_name(), read_units(), write_units(), update_table_opts())
                   -> update_table_return().
 update_table(Table, ReadUnits, WriteUnits, Opts) ->
     update_table(Table, ReadUnits, WriteUnits, Opts, default_config()).
 
--spec update_table(table_name(), non_neg_integer(), non_neg_integer(), update_table_opts(), 
-                   aws_config()) 
+-spec update_table(table_name(), non_neg_integer(), non_neg_integer(), update_table_opts(),
+                   aws_config())
                   -> update_table_return().
 update_table(Table, ReadUnits, WriteUnits, Opts, Config) ->
     update_table(Table, [{provisioned_throughput, {ReadUnits, WriteUnits}} | Opts], Config).

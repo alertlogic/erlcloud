@@ -75,23 +75,23 @@
 %%% Library initialization
 %%%------------------------------------------------------------------------------
 
--spec(new/2 :: (string(), string()) -> aws_config()).
+-spec(new(string(), string()) -> aws_config()).
 new(AccessKeyID, SecretAccessKey) ->
     #aws_config{access_key_id=AccessKeyID,
                 secret_access_key=SecretAccessKey}.
 
--spec(new/3 :: (string(), string(), string()) -> aws_config()).
+-spec(new(string(), string(), string()) -> aws_config()).
 new(AccessKeyID, SecretAccessKey, Host) ->
     #aws_config{access_key_id=AccessKeyID,
                 secret_access_key=SecretAccessKey,
                 ses_host=Host}.
 
--spec(configure/2 :: (string(), string()) -> ok).
+-spec(configure(string(), string()) -> ok).
 configure(AccessKeyID, SecretAccessKey) ->
     put(aws_config, new(AccessKeyID, SecretAccessKey)),
     ok.
 
--spec(configure/3 :: (string(), string(), string()) -> ok).
+-spec(configure(string(), string(), string()) -> ok).
 configure(AccessKeyID, SecretAccessKey, Host) ->
     put(aws_config, new(AccessKeyID, SecretAccessKey, Host)),
     ok.
@@ -211,7 +211,7 @@ get_identity_notification_attributes(Identities) ->
 %%                                    [{forwarding_enabled, true},
 %%                                     {bounce_topic, "arn:aws:sns:us-east-1:123456789012:example"},
 %%                                     {complaint_topic, "arn:aws:sns:us-east-1:123456789012:example"},
-%%                                     {delivery_topic, "arn:aws:sns:us-east-1:123456789012:example"}]}]}]} = 
+%%                                     {delivery_topic, "arn:aws:sns:us-east-1:123456789012:example"}]}]}]} =
 %% erlcloud_ses:get_identity_notification_attributes(["user@example.com"]).
 %% '
 %%
@@ -301,7 +301,7 @@ get_send_quota() ->
 %% `
 %%  {ok, [{sent_last_24_hours, 127.0},
 %%        {max_24_hour_send, 200.0},
-%%        {max_send_rate, 1.0}]} = 
+%%        {max_send_rate, 1.0}]} =
 %% erlcloud_ses:get_send_quota().
 %% '
 %%
@@ -352,7 +352,7 @@ get_send_statistics() ->
 %%                            {bounces,0},
 %%                            {complaints,0}],
 %%                           ...
-%%                          ]}]} = 
+%%                          ]}]} =
 %% erlcloud_ses:get_send_statistics().
 %% '
 %%
@@ -410,7 +410,7 @@ list_identities(Opts) ->
 %%
 %% `
 %%  {ok, [{identities, ["example.com"]},
-%%        {next_token, "..."}]} = 
+%%        {next_token, "..."}]} =
 %% erlcloud_ses:list_identities([{identity_type, domain},
 %%                               {max_items, 1},
 %%                               {next_token, "..."}]).
@@ -462,7 +462,7 @@ list_identities(Opts, Config) ->
 
 send_email(Destination, Body, Subject, Source) ->
     send_email(Destination, Body, Subject, Source, [], default_config()).
-                                                       
+
 send_email(Destination, Body, Subject, Source, #aws_config{} = Config) ->
     send_email(Destination, Body, Subject, Source, [], Config);
 send_email(Destination, Body, Subject, Source, Opts) ->
@@ -647,7 +647,7 @@ set_identity_notification_topic(Identity, NotificationType, SnsTopic, Config) ->
 %%% VerifyDomainDkim
 %%%------------------------------------------------------------------------------
 
--type verify_domain_dkim_result() :: {ok, [{dkim_tokens, [string()]}]} | 
+-type verify_domain_dkim_result() :: {ok, [{dkim_tokens, [string()]}]} |
                                      {error, term()}.
 
 verify_domain_dkim(Domain) ->
@@ -686,7 +686,7 @@ verify_domain_dkim(Domain, Config) ->
 %%% VerifyDomainIdentity
 %%%------------------------------------------------------------------------------
 
--type verify_domain_identity_result() :: {ok, [{verification_token, string()}]} | 
+-type verify_domain_identity_result() :: {ok, [{verification_token, string()}]} |
                                          {error, term()}.
 
 verify_domain_identity(Domain) ->
@@ -853,7 +853,7 @@ encode_body([{_,_} | _] = Body, Acc) ->
 encode_body(Body, Acc) when is_list(Body); is_binary(Body) ->
     %% Single entry
     encode_body_pairs([{text, Body}], Acc).
-    
+
 encode_opts([], Acc) ->
     Acc;
 encode_opts([{reply_to_addresses, List} | T], Acc) ->
@@ -883,10 +883,10 @@ encode_notification_type(NotificationType, _Acc) ->
 %%%------------------------------------------------------------------------------
 
 -spec decode_verification_status(string()) -> verification_status().
-decode_verification_status("Pending") -> pending; 
-decode_verification_status("Success") -> success; 
-decode_verification_status("Failed") -> failed; 
-decode_verification_status("TemporaryFailure") -> temporary_failure; 
+decode_verification_status("Pending") -> pending;
+decode_verification_status("Success") -> success;
+decode_verification_status("Failed") -> failed;
+decode_verification_status("TemporaryFailure") -> temporary_failure;
 decode_verification_status("NotStarted") -> not_started.
 
 
@@ -969,10 +969,10 @@ ses_request_no_update(Config, Action, Params) ->
                   erlcloud_util:sha256_mac(Config#aws_config.secret_access_key, Date)),
     Auth = lists:flatten(
              ["AWS3-HTTPS AWSAccessKeyId=",
-              Config#aws_config.access_key_id, 
+              Config#aws_config.access_key_id,
               ",Algorithm=HmacSHA256,Signature=",
               Signature]),
-             
+
     Headers = [{"Date", Date},
                {"X-Amzn-Authorization", Auth}],
     Headers2 = case Config#aws_config.security_token of
@@ -981,8 +981,8 @@ ses_request_no_update(Config, Action, Params) ->
                    Token ->
                        [{"x-amz-security-token", Token} | Headers]
                end,
-    QParams = [{"Action", Action}, 
-               {"Version", ?API_VERSION} | 
+    QParams = [{"Action", Action},
+               {"Version", ?API_VERSION} |
                Params],
     Query = erlcloud_http:make_query_string(QParams),
 
@@ -993,6 +993,6 @@ ses_request_no_update(Config, Action, Params) ->
         {error, {http_error, Code, _, ErrBody}} when Code >= 400; Code =< 599 ->
             ErrDoc = element(1, xmerl_scan:string(binary_to_list(ErrBody))),
             {error, decode_error(ErrDoc)};
-        {error, Reason} -> 
+        {error, Reason} ->
             {error, Reason}
     end.
