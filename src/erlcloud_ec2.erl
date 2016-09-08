@@ -32,6 +32,10 @@
          describe_snapshot_attribute/2, describe_snapshot_attribute/3,
          describe_snapshots/0, describe_snapshots/1, describe_snapshots/2,
          describe_snapshots/3, describe_snapshots/4,
+         describe_snapshots_paged/0, describe_snapshots_paged/1,
+         describe_snapshots_paged/2, describe_snapshots_paged/3,
+         describe_snapshots_paged/4,
+         next_snapshots_page/0,
          describe_volumes/0, describe_volumes/1, describe_volumes/2,
          detach_volume/1, detach_volume/2,
          modify_snapshot_attribute/3, modify_snapshot_attribute/4,
@@ -55,6 +59,9 @@
          describe_instance_attribute/2, describe_instance_attribute/3,
          describe_instances/0, describe_instances/1, describe_instances/2,
          describe_instances/3,
+         describe_instances_paged/0, describe_instances_paged/1,
+         describe_instances_paged/2,
+         next_instances_page/0,
          modify_instance_attribute/3, modify_instance_attribute/4,
          modify_instance_attribute/5,
          reboot_instances/1, reboot_instances/2,
@@ -65,6 +72,12 @@
          terminate_instances/1, terminate_instances/2,
          describe_instance_status/1, describe_instance_status/2,
          describe_instance_status/3,
+         describe_instance_status_paged/0,
+         describe_instance_status_paged/1,
+         describe_instance_status_paged/3,
+         next_instance_status_page/0,
+         describe_instance_status_all/0,
+         describe_instance_status_all/1,
 
          %% Key Pairs
          create_key_pair/1, create_key_pair/2,
@@ -90,6 +103,10 @@
          describe_reserved_instances_offerings_all/0,
          describe_reserved_instances_offerings_all/1,
          describe_reserved_instances_offerings_all/2,
+         describe_reserved_instances_offerings_paged/0,
+         describe_reserved_instances_offerings_paged/1,
+         describe_reserved_instances_offerings_paged/3,
+         next_reserved_instances_offerings_page/0,
          purchase_reserved_instances_offering/1,
          purchase_reserved_instances_offering/2,
 
@@ -112,11 +129,18 @@
          describe_spot_fleet_instances_all/1, describe_spot_fleet_instances_all/2,
          describe_spot_fleet_instances/1, describe_spot_fleet_instances/2,
          describe_spot_fleet_instances/3, describe_spot_fleet_instances/4,
+         describe_spot_fleet_instances_paged/1, describe_spot_fleet_instances_paged/2,
+         describe_spot_fleet_instances_paged/3, describe_spot_fleet_instances_paged/4,
+         next_spot_fleet_instances_page/0,
          describe_spot_instance_requests/0, describe_spot_instance_requests/1,
          describe_spot_instance_requests/2,
          describe_spot_price_history/0, describe_spot_price_history/1,
          describe_spot_price_history/2, describe_spot_price_history/3,
          describe_spot_price_history/5,
+         describe_spot_price_history_paged/0, describe_spot_price_history_paged/1,
+         describe_spot_price_history_paged/2, describe_spot_price_history_paged/3,
+         describe_spot_price_history_paged/5,
+         next_spot_price_history_page/0,
          modify_spot_fleet_request/3, modify_spot_fleet_request/4,
          request_spot_instances/1, request_spot_instances/2,
          request_spot_fleet/1, request_spot_fleet/2,
@@ -163,6 +187,8 @@
          %% Tagging. Uses different version of AWS API
          create_tags/2, create_tags/3,
          describe_tags/0, describe_tags/1, describe_tags/2,
+         describe_tags_paged/0, describe_tags_paged/1, describe_tags_paged/3,
+         next_tags_page/0,
          delete_tags/2, delete_tags/3,
         
          %% VPN gateways
@@ -170,7 +196,16 @@
          describe_vpn_connections/0, describe_vpn_connections/1, describe_vpn_connections/2, describe_vpn_connections/3,
         
         %% Customer gateways
-         describe_customer_gateways/0, describe_customer_gateways/1, describe_customer_gateways/2, describe_customer_gateways/3
+        describe_customer_gateways/0, describe_customer_gateways/1, describe_customer_gateways/2, describe_customer_gateways/3,
+
+        %% Testing
+        describe_instances_paged_test/0,
+        describe_snapshots_paged_test/0,
+        describe_instance_status_paged_test/0,
+        describe_reserved_instances_offerings_paged_test/0, %% FAILS
+        describe_tags_paged_test/0,
+        describe_spot_price_history_paged_test/0
+
 
         ]).
 
@@ -181,7 +216,8 @@
 % -define(NEW_API_VERSION, "2013-10-15").
 % -define(NEW_API_VERSION, "2014-02-01").
 % -define(NEW_API_VERSION, "2014-06-15").
--define(NEW_API_VERSION, "2014-10-01").
+% -define(NEW_API_VERSION, "2014-10-01").
+-define(NEW_API_VERSION, "2016-04-01").
 -include_lib("erlcloud/include/erlcloud.hrl").
 -include_lib("erlcloud/include/erlcloud_aws.hrl").
 -include_lib("erlcloud/include/erlcloud_ec2.hrl").
@@ -1379,6 +1415,102 @@ describe_instances(InstanceIDs, Filter, Config)
             {error, Reason}
     end.
 
+%%
+%%
+-spec(describe_instances_paged/0 :: () -> ok).
+describe_instances_paged() -> 
+    describe_instances_paged(default_config()).
+
+-spec(describe_instances_paged/1 :: (aws_config() | integer()) -> ok).
+describe_instances_paged(Config)
+  when is_record(Config, aws_config) ->
+    describe_instances_paged(20, Config);
+describe_instances_paged(MaxResults) 
+  when is_integer(MaxResults),
+       MaxResults >= 5,
+       MaxResults =< 1000 ->
+    describe_instances_paged(MaxResults, default_config()).
+
+-spec(describe_instances_paged/2 :: (integer(), aws_config()) -> ok).
+describe_instances_paged(MaxResults, Config)
+  when is_record(Config, aws_config),
+       is_integer(MaxResults), MaxResults >= 5, MaxResults =< 1000 ->
+    put(instances_max_results, MaxResults),
+    put(instances_config, Config),
+    put(instances_next_token, undefined),
+    ok.
+
+-spec(next_instances_page/0 :: () -> proplist()).
+next_instances_page() ->
+    Config = get(instances_config),
+    MaxResults = get(instances_max_results),
+    case get(instances_next_token) of
+      undefined ->
+        Params = erlcloud_aws:param_list([MaxResults], "MaxResults"),
+        case ec2_query_full(Config, "DescribeInstances", Params, ?NEW_API_VERSION) of
+          {ok, Doc} ->
+            case xmerl_xpath:string("/DescribeInstancesResponse/nextToken",Doc) of
+              [] ->
+                put(instances_next_token, null);
+              NextTokenXMLString ->
+                NewNextToken = element(5,lists:nth(1,element(9,lists:nth(1,NextTokenXMLString)))),
+                put(instances_next_token, NewNextToken)
+            end,
+            Reservations = xmerl_xpath:string("/DescribeInstancesResponse/reservationSet/item", Doc),
+            {ok, [extract_reservation(Item) || Item <- Reservations]};
+          {error, Reason} ->
+            {error, Reason}
+        end;
+      null ->
+        {eol};
+      NextToken ->
+        Params = erlcloud_aws:param_list([MaxResults], "MaxResults") ++
+            erlcloud_aws:param_list([NextToken], "NextToken"),
+        case ec2_query_full(Config, "DescribeInstances", Params, ?NEW_API_VERSION) of
+          {ok, Doc} ->
+            case xmerl_xpath:string("/DescribeInstancesResponse/nextToken",Doc) of
+              [] ->
+                put(instances_next_token, null);
+              NextTokenXMLString ->
+                NewNextToken = element(5,lists:nth(1,element(9,lists:nth(1,NextTokenXMLString)))),
+                put(instances_next_token, NewNextToken)
+            end,
+            Reservations = xmerl_xpath:string("/DescribeInstancesResponse/reservationSet/item", Doc),
+            {ok, [extract_reservation(Item) || Item <- Reservations]};
+          {error, Reason} ->
+            {error, Reason}
+        end
+    end.
+
+%% TODO: implement unit test instead
+
+describe_instances_paged_test() ->
+  {ok, Instances} = describe_instances(),
+  {ok, All} = describe_instances_all(),
+  Lists_same = lists_are_the_same(Instances, All) andalso lists_are_the_same(All, Instances),
+  {'Original', length(Instances), 'Paged', length(All), Lists_same}.
+
+describe_instances_all() ->
+  describe_instances_paged(20),
+  {ok, describe_instances_all([])}.
+describe_instances_all(List) ->
+  case next_instances_page() of
+    {ok, NextPage} ->
+      case NextPage of
+        [] ->
+          List;
+        MoreResults ->
+          describe_instances_all(lists:append(List, MoreResults))
+      end;
+    {eol} ->
+      List
+  end.
+
+lists_are_the_same([], _List2) ->
+  true;
+lists_are_the_same([First | List1], List2) ->
+  lists:member(First,List2) andalso lists_are_the_same(List1,List2).
+
 extract_reservation(Node) ->
     [{reservation_id, get_text("reservationId", Node)},
      {owner_id, get_text("ownerId", Node)},
@@ -1460,6 +1592,88 @@ describe_instance_status(Params, Filter, Config) ->
             {ok, [ extract_instance_status(Item) || Item <- xmerl_xpath:string(Path, Doc) ]};
         {error, _} = Error ->
             Error
+    end.
+
+%%
+%%
+describe_instance_status_paged() ->
+    describe_instance_status_paged(20, [], default_config()).
+describe_instance_status_paged(MaxResults)
+    when is_integer(MaxResults), MaxResults >= 5, MaxResults =< 1000 ->
+    describe_instance_status_paged(MaxResults, [], default_config());
+describe_instance_status_paged(Filter) ->
+    describe_instance_status_paged(20, Filter, default_config()).
+describe_instance_status_paged(MaxResults, Filter, Config)
+    when is_integer(MaxResults), MaxResults >= 5, MaxResults =< 1000 ->
+    put(instances_status_max_results, MaxResults),
+    put(instances_status_config, Config),
+    put(instances_status_filter, Filter),
+    put(instances_status_next_token, undefined),
+    ok.
+
+next_instance_status_page() ->
+    Config = get(instances_status_config),
+    Filter = get(instances_status_filter),
+    MaxResults = get(instances_status_max_results),
+    case get(instances_status_next_token) of
+        undefined ->
+            Params = erlcloud_aws:param_list([MaxResults], "MaxResults") ++ list_to_ec2_filter(Filter),
+            case ec2_query_full(Config, "DescribeInstanceStatus", Params, ?NEW_API_VERSION) of
+                {ok, Doc} ->
+                    case xmerl_xpath:string("/DescribeInstanceStatusResponse/nextToken",Doc) of
+                        [] ->
+                            put(instances_status_next_token, null);
+                        NextTokenXMLString ->
+                            NewNextToken = element(5,lists:nth(1,element(9,lists:nth(1,NextTokenXMLString)))),
+                            put(instances_status_next_token, NewNextToken)
+                    end,
+                    Reservations = xmerl_xpath:string("/DescribeInstanceStatusResponse/reservationSet/item", Doc),
+                    {ok, [extract_instance_status(Item) || Item <- Reservations]};
+                {error, Reason} ->
+                    {error, Reason}
+            end;
+        null ->
+            {eol};
+        NextToken ->
+            Params = erlcloud_aws:param_list([MaxResults], "MaxResults") ++ list_to_ec2_filter(Filter) ++
+                erlcloud_aws:param_list([NextToken], "NextToken"),
+            case ec2_query_full(Config, "DescribeInstanceStatus", Params, ?NEW_API_VERSION) of
+                {ok, Doc} ->
+                    case xmerl_xpath:string("/DescribeInstanceStatusResponse/nextToken",Doc) of
+                        [] ->
+                            put(instances_status_next_token, null);
+                        NextTokenXMLString ->
+                            NewNextToken = element(5,lists:nth(1,element(9,lists:nth(1,NextTokenXMLString)))),
+                            put(instances_status_next_token, NewNextToken)
+                    end,
+                    Reservations = xmerl_xpath:string("/DescribeInstanceStatusResponse/reservationSet/item", Doc),
+                    {ok, [extract_instance_status(Item) || Item <- Reservations]};
+                {error, Reason} ->
+                    {error, Reason}
+            end
+    end.
+
+%% TODO: implement unit test instead
+
+describe_instance_status_paged_test() ->
+    {ok, Original} = describe_instances(),
+    {ok, Paged} = describe_instance_status_all(),
+    {'Original', length(Original), 'Paged', length(Paged), length(Paged) == length(Original)}.
+
+describe_instance_status_all() ->
+    describe_instances_paged(20),
+    {ok, describe_instances_all([])}.
+describe_instance_status_all(List) ->
+    case next_instances_page() of
+        {ok, NextPage} ->
+            case NextPage of
+                [] ->
+                    List;
+                MoreResults ->
+                    describe_instances_all(lists:append(List, MoreResults))
+            end;
+        {eol} ->
+            List
     end.
 
 extract_instance_status(Node) ->
@@ -1683,14 +1897,14 @@ describe_reserved_instances() -> describe_reserved_instances([]).
 
 -spec(describe_reserved_instances/1 :: ([string()] | aws_config()) -> proplist()).
 describe_reserved_instances(Config)
-  when is_record(Config, aws_config) ->
+    when is_record(Config, aws_config) ->
     describe_reserved_instances([], Config);
 describe_reserved_instances(ReservedInstanceIDs) ->
     describe_reserved_instances(ReservedInstanceIDs, default_config()).
 
 -spec(describe_reserved_instances/2 :: ([string()], aws_config()) -> proplist()).
 describe_reserved_instances(ReservedInstanceIDs, Config)
-  when is_list(ReservedInstanceIDs) ->
+    when is_list(ReservedInstanceIDs) ->
     case ec2_query(Config, "DescribeReservedInstances", erlcloud_aws:param_list(ReservedInstanceIDs, "ReservedInstanceId")) of
         {ok, Doc} ->
             ReservedInstances = xmerl_xpath:string("/DescribeReservedInstancesResponse/reservedInstancesSet/item", Doc),
@@ -1755,7 +1969,7 @@ describe_reserved_instances_offerings_all() -> describe_reserved_instances_offer
 
 -spec(describe_reserved_instances_offerings_all/1 :: ([{atom(), string()}] | aws_config()) -> proplist()).
 describe_reserved_instances_offerings_all(Config)
-  when is_record(Config, aws_config) ->
+    when is_record(Config, aws_config) ->
     describe_reserved_instances_offerings_all([], Config);
 describe_reserved_instances_offerings_all(Selector) ->
     describe_reserved_instances_offerings_all(Selector, default_config()).
@@ -1765,7 +1979,7 @@ describe_reserved_instances_offerings_all(Selector, Config) ->
     describe_reserved_instances_offerings_all(Selector, Config, []).
 
 describe_reserved_instances_offerings_all(Selector, Config, Acc)
-  when is_list(Selector) ->
+    when is_list(Selector) ->
     case describe_reserved_instances_offerings(Selector, Config) of
         {ok, Res} ->
             {ok, lists:append(Acc, Res)};
@@ -1774,6 +1988,100 @@ describe_reserved_instances_offerings_all(Selector, Config, Acc)
             describe_reserved_instances_offerings_all(NewSelector, Config, lists:append(Acc, Res));
         {error, _} = Error ->
             Error
+    end.
+
+describe_reserved_instances_offerings_paged() -> describe_reserved_instances_offerings_paged([]).
+
+describe_reserved_instances_offerings_paged(Config)
+    when is_record(Config, aws_config) ->
+    describe_reserved_instances_offerings_paged(20, [], Config);
+describe_reserved_instances_offerings_paged(MaxResults)
+    when is_integer(MaxResults), MaxResults >= 5, MaxResults =< 100 ->
+    describe_reserved_instances_offerings_paged(MaxResults, [], default_config());
+describe_reserved_instances_offerings_paged(Selector) ->
+    describe_reserved_instances_offerings_paged(20, Selector, default_config()).
+
+describe_reserved_instances_offerings_paged(MaxResults, Selector, Config)
+    when is_list(Selector), is_integer(MaxResults), MaxResults >= 5, MaxResults =< 100 ->
+    put(reserved_instances_offerings_max_results, MaxResults),
+    put(reserved_instances_offerings_selector, Selector),
+    put(reserved_instances_offerings_config, Config),
+    put(reserved_instances_offerings_next_token, undefined),
+    ok.
+
+next_reserved_instances_offerings_page() ->
+    MaxResults = get(reserved_instances_offerings_max_results),
+    Selector = get(reserved_instances_offerings_selector),
+    Config = get(reserved_instances_offerings_config),
+    InstanceTypes = [Value || {Key, Value} <- Selector, Key =:= instance_type],
+    AvailabilityZones = [Value || {Key, Value} <- Selector, Key =:= availability_zone],
+    Descs = [Value || {Key, Value} <- Selector, Key =:= product_description],
+    case get(reserved_instances_offerings_next_token) of
+        undefined ->
+            Params = [{"MaxResults", MaxResults}] ++
+                erlcloud_aws:param_list(InstanceTypes, "InstanceType") ++
+                erlcloud_aws:param_list(AvailabilityZones, "AvailabilityZone") ++
+                erlcloud_aws:param_list(Descs, "ProductDescription"),
+            case ec2_query(Config, "DescribeReservedInstancesOfferings", Params) of
+                {ok, Doc} ->
+                    Res = [extract_reserved_instances_offering(Node) ||
+                        Node <- xmerl_xpath:string("/DescribeReservedInstancesOfferingsResponse/reservedInstancesOfferingsSet/item", Doc)],
+                    case erlcloud_util:next_token("/DescribeReservedInstancesOfferingsResponse/nextToken", Doc) of
+                        ok ->
+                            put(reserved_instances_offerings_next_token, null),
+                            {ok, Res};
+                        {paged, NewNextToken} ->
+                            put(reserved_instances_offerings_next_token, NewNextToken),
+                            {ok, Res}
+                    end;
+                {error, _} = Error ->
+                    Error
+            end;
+        null ->
+            {eol};
+        NextToken ->
+            Params = erlcloud_aws:param_list(InstanceTypes, "InstanceType") ++
+                erlcloud_aws:param_list(AvailabilityZones, "AvailabilityZone") ++
+                erlcloud_aws:param_list(Descs, "ProductDescription") ++
+                erlcloud_aws:param_list([MaxResults], "MaxResults") ++
+                erlcloud_aws:param_list(NextToken, "NextToken"),
+            case ec2_query(Config, "DescribeReservedInstancesOfferings", Params) of
+                {ok, Doc} ->
+                    Res = [extract_reserved_instances_offering(Node) ||
+                        Node <- xmerl_xpath:string("/DescribeReservedInstancesOfferingsResponse/reservedInstancesOfferingsSet/item", Doc)],
+                    case erlcloud_util:next_token("/DescribeReservedInstancesOfferingsResponse/nextToken", Doc) of
+                        ok ->
+                            put(reserved_instances_offerings_next_token, null),
+                            {ok, Res};
+                        {paged, NewNextToken} ->
+                            put(reserved_instances_offerings_next_token, NewNextToken),
+                            {ok, Res}
+                    end;
+                {error, _} = Error ->
+                    Error
+            end
+    end.
+
+describe_reserved_instances_offerings_paged_test() ->
+    {ok, Original} = describe_reserved_instances_offerings(),
+    {ok, Paged} = describe_reserved_instances_offerings_all2(),
+    Lists_same = lists_are_the_same(Original, Paged) andalso lists_are_the_same(Paged, Original),
+    {'Original', length(Original), 'Paged', length(Paged), Lists_same}.
+
+describe_reserved_instances_offerings_all2() ->
+    describe_reserved_instances_offerings_paged(20),
+    {ok, describe_reserved_instances_offerings_all2([])}.
+describe_reserved_instances_offerings_all2(List) ->
+    case next_reserved_instances_offerings_page() of
+        {ok, NextPage} ->
+            case NextPage of
+                [] ->
+                    List;
+                MoreResults ->
+                    describe_reserved_instances_offerings_all2(lists:append(List, MoreResults))
+            end;
+        {eol} ->
+            List
     end.
 
 extract_reserved_instances_offering(Node) ->
@@ -1983,6 +2291,116 @@ describe_snapshots(SnapshotIDs, Owner, RestorableBy, Config)
             Error
     end.
 
+%%
+%%
+-spec(describe_snapshots_paged/0 :: () -> ok).
+describe_snapshots_paged() -> describe_snapshots_paged(20, "self").
+
+-spec(describe_snapshots_paged/1 :: (integer() | aws_config()) -> ok).
+describe_snapshots_paged(Config)
+    when is_record(Config, aws_config) ->
+    describe_snapshots_paged(20, "self", Config);
+describe_snapshots_paged(MaxResults)
+    when is_integer(MaxResults), MaxResults >= 5, MaxResults =< 1000 ->
+    describe_snapshots_paged(MaxResults, "self", none, default_config()).
+
+-spec(describe_snapshots_paged/2 :: (integer(), aws_config()) -> ok;
+    ([string()], string() | none) -> [proplist()]).
+describe_snapshots_paged(MaxResults, Config)
+    when is_record(Config, aws_config) ->
+    describe_snapshots_paged(MaxResults, "self", none, Config);
+describe_snapshots_paged(MaxResults, Owner) ->
+    describe_snapshots_paged(MaxResults, Owner, none, default_config()).
+
+-spec(describe_snapshots_paged/3 :: (integer(), string() | none, aws_config()) -> ok;
+    ([string()], string() | none, string() | none) -> [proplist()]).
+describe_snapshots_paged(MaxResults, Owner, Config)
+    when is_record(Config, aws_config) ->
+    describe_snapshots_paged(MaxResults, Owner, none, Config);
+describe_snapshots_paged(MaxResults, Owner, RestorableBy) ->
+    describe_snapshots_paged(MaxResults, Owner, RestorableBy, default_config()).
+
+-spec(describe_snapshots_paged/4 :: (integer(), string() | none, string() | none, aws_config()) -> ok).
+describe_snapshots_paged(MaxResults, Owner, RestorableBy, Config)
+    when is_integer(MaxResults),
+    is_list(Owner) orelse Owner =:= none,
+    is_list(RestorableBy) orelse RestorableBy =:= none ->
+    put(snapshots_config, Config),
+    put(snapshots_owner, Owner),
+    put(snapshots_restorable_by, RestorableBy),
+    put(snapshots_max_results, MaxResults),
+    put(snapshots_next_token, undefined),
+    ok.
+
+next_snapshots_page() ->
+    Config = get(snapshots_config),
+    MaxResults = get(snapshots_max_results),
+    Owner = get(snapshots_owner),
+    RestorableBy = get(snapshots_restorable_by),
+    case get(snapshots_next_token) of
+        undefined ->
+            Params = erlcloud_aws:param_list([MaxResults], "MaxResults") ++
+            [{"Owner", Owner}, {"RestorableBy", RestorableBy}],
+            case ec2_query_full(Config, "DescribeSnapshots", Params, ?NEW_API_VERSION) of
+                {ok, Doc} ->
+                    case xmerl_xpath:string("/DescribeSnapshotsResponse/nextToken",Doc) of
+                        [] ->
+                            put(snapshots_next_token, null);
+                        NextTokenXMLString ->
+                            NewNextToken = element(5,lists:nth(1,element(9,lists:nth(1,NextTokenXMLString)))),
+                            put(snapshots_next_token, NewNextToken)
+                    end,
+                    {ok, [extract_snapshot(Item) || Item <- xmerl_xpath:string("/DescribeSnapshotsResponse/snapshotSet/item", Doc)]};
+                {error, Reason} ->
+                    {error, Reason}
+            end;
+        null ->
+            {eol};
+        NextToken ->
+            Params = erlcloud_aws:param_list([MaxResults], "MaxResults") ++
+                [{"Owner", Owner}, {"RestorableBy", RestorableBy}] ++
+                erlcloud_aws:param_list([NextToken], "NextToken"),
+            case ec2_query_full(Config, "DescribeSnapshots", Params, ?NEW_API_VERSION) of
+                {ok, Doc} ->
+                    case xmerl_xpath:string("/DescribeSnapshotsResponse/nextToken",Doc) of
+                        [] ->
+                            put(snapshots_next_token, null);
+                        NextTokenXMLString ->
+                            NewNextToken = element(5,lists:nth(1,element(9,lists:nth(1,NextTokenXMLString)))),
+                            put(last_doc, Doc),
+                            put(snapshots_next_token, NewNextToken)
+                    end,
+                    {ok, [extract_snapshot(Item) || Item <- xmerl_xpath:string("/DescribeSnapshotsResponse/snapshotSet/item", Doc)]};
+                {error, Reason} ->
+                    {error, Reason}
+            end
+    end.
+
+%% TODO: implement unit test instead
+
+describe_snapshots_paged_test() ->
+    {ok, Snapshots} = describe_snapshots(),
+    {ok, All} = describe_snapshots_all(),
+    Lists_same = lists_are_the_same(Snapshots, All) andalso lists_are_the_same(All, Snapshots),
+    {'Original', length(Snapshots), 'Paged', length(All), Lists_same}.
+
+describe_snapshots_all() ->
+    describe_snapshots_paged(1000),
+    {ok, describe_snapshots_all([])}.
+describe_snapshots_all(List) ->
+    case next_snapshots_page() of
+        {ok, NextPage} ->
+            case NextPage of
+                [] ->
+                    List;
+                MoreResults ->
+                    describe_snapshots_all(lists:append(List, MoreResults))
+            end;
+        {eol} ->
+            List
+    end.
+
+
 extract_snapshot(Node) ->
     [{snapshot_id, get_text("snapshotId", Node)},
      {volume_id, get_text("volumeId", Node)},
@@ -2120,6 +2538,124 @@ describe_spot_price_history(StartTime, EndTime, InstanceTypes,
                     Item <- xmerl_xpath:string("/DescribeSpotPriceHistoryResponse/spotPriceHistorySet/item", Doc)]};
         {error, _} = Error ->
             Error
+    end.
+
+%%
+%%
+describe_spot_price_history_paged() ->
+    describe_spot_price_history_paged(none).
+
+describe_spot_price_history_paged(Config)
+    when is_record(Config, aws_config) ->
+    describe_spot_price_history_paged(none, Config);
+describe_spot_price_history_paged(StartTime) ->
+    describe_spot_price_history_paged(StartTime, none).
+
+describe_spot_price_history_paged(StartTime, Config)
+    when is_record(Config, aws_config) ->
+    describe_spot_price_history_paged(StartTime, none, Config);
+describe_spot_price_history_paged(StartTime, EndTime) ->
+    describe_spot_price_history_paged(StartTime, EndTime, []).
+
+describe_spot_price_history_paged(StartTime, EndTime, Config)
+    when is_record(Config, aws_config) ->
+    describe_spot_price_history_paged(StartTime, EndTime, [], Config);
+describe_spot_price_history_paged(StartTime, EndTime, InstanceTypes) ->
+    describe_spot_price_history_paged(StartTime, EndTime, InstanceTypes, none).
+
+describe_spot_price_history_paged(StartTime, EndTime, InstanceTypes, Config)
+    when is_record(Config, aws_config) ->
+    describe_spot_price_history_paged(StartTime, EndTime, InstanceTypes, none, Config);
+describe_spot_price_history_paged(StartTime, EndTime, InstanceTypes, ProductDescription) ->
+    describe_spot_price_history_paged(StartTime, EndTime, InstanceTypes,
+        ProductDescription, default_config()).
+
+describe_spot_price_history_paged(StartTime, EndTime, InstanceTypes,
+    ProductDescription, Config)
+    when is_list(InstanceTypes),
+    is_list(ProductDescription) orelse ProductDescription =:= none ->
+
+    put(spot_price_history_start_time, StartTime),
+    put(spot_price_history_end_time, EndTime),
+    put(spot_price_history_instance_types, InstanceTypes),
+    put(spot_price_history_product_description, ProductDescription),
+    put(spot_price_history_config, Config),
+    put(spot_price_history_max_results, 50),
+    put(spot_price_history_next_token, undefined),
+    ok.
+
+next_spot_price_history_page() ->
+    StartTime = get(spot_price_history_start_time),
+    EndTime = get(spot_price_history_end_time),
+    InstanceTypes = get(spot_price_history_instance_types),
+    ProductDescription = get(spot_price_history_product_description),
+    Config = get(spot_price_history_config),
+    MaxResults = get(spot_price_history_max_results),
+
+    case get(spot_price_history_next_token) of
+        undefined ->
+            Params = [{"StartTime", StartTime}, {"EndTime", EndTime},
+                {"ProductDescription", ProductDescription}|
+                    erlcloud_aws:param_list(InstanceTypes, "InstanceType")] ++ erlcloud_aws:param_list([MaxResults], "MaxResults"),
+            case ec2_query_full(Config, "DescribeSpotPriceHistory", Params, ?NEW_API_VERSION) of
+                {ok, Doc} ->
+                    case xmerl_xpath:string("/DescribeSpotPriceHistoryResponse/nextToken",Doc) of
+                        [] ->
+                            put(spot_price_history_next_token, null);
+                        NextTokenXMLString ->
+                            NewNextToken = element(5,lists:nth(1,element(9,lists:nth(1,NextTokenXMLString)))),
+                            put(spot_price_history_next_token, NewNextToken)
+                    end,
+                    {ok, [extract_spot_price_history(Item) ||
+                        Item <- xmerl_xpath:string("/DescribeSpotPriceHistoryResponse/spotPriceHistorySet/item", Doc)]};
+                {error, Reason} ->
+                    {error, Reason}
+            end;
+        null ->
+            {eol};
+        NextToken ->
+            Params = [{"StartTime", StartTime}, {"EndTime", EndTime},
+                {"ProductDescription", ProductDescription}|
+                    erlcloud_aws:param_list(InstanceTypes, "InstanceType")] ++
+                erlcloud_aws:param_list([MaxResults], "MaxResults") ++
+                erlcloud_aws:param_list([NextToken], "NextToken"),
+            case ec2_query_full(Config, "DescribeSpotPriceHistory", Params, ?NEW_API_VERSION) of
+                {ok, Doc} ->
+                    case xmerl_xpath:string("/DescribeSpotPriceHistoryResponse/nextToken",Doc) of
+                        [] ->
+                            put(spot_price_history_next_token, null);
+                        NextTokenXMLString ->
+                            NewNextToken = element(5,lists:nth(1,element(9,lists:nth(1,NextTokenXMLString)))),
+                            put(spot_price_history_next_token, NewNextToken)
+                    end,
+                    {ok, [extract_spot_price_history(Item) ||
+                        Item <- xmerl_xpath:string("/DescribeSpotPriceHistoryResponse/spotPriceHistorySet/item", Doc)]};
+                {error, Reason} ->
+                    {error, Reason}
+            end
+    end.
+
+describe_spot_price_history_paged_test() ->
+    {ok, Original} = describe_spot_price_history(),
+    {ok, Paged} = describe_spot_price_history_all(),
+    Lists_same = lists_are_the_same(Original, Paged) andalso lists_are_the_same(Paged, Original),
+    {'Original', length(Original), 'Paged', length(Paged), Lists_same}.
+
+describe_spot_price_history_all() ->
+    describe_spot_price_history_paged(),
+    {ok, describe_spot_price_history_all([])}.
+describe_spot_price_history_all(List) ->
+    case next_spot_price_history_page() of
+        {ok, NextPage} ->
+            case NextPage of
+                [] ->
+                    List;
+                MoreResults ->
+                    io:write(length(MoreResults)),
+                    describe_spot_price_history_all(lists:append(List, MoreResults))
+            end;
+        {eol} ->
+            List
     end.
 
 extract_spot_price_history(Node) ->
@@ -2646,6 +3182,35 @@ describe_spot_fleet_instances(SpotFleetRequestId, NextToken, MaxResults, Config)
         {error, _} = E -> E
     end.
 
+describe_spot_fleet_instances_paged(SpotFleetRequestId) ->
+    describe_spot_fleet_instances_paged(SpotFleetRequestId, undefined, undefined, default_config()).
+
+describe_spot_fleet_instances_paged(SpotFleetRequestId, NextToken) ->
+    describe_spot_fleet_instances_paged(SpotFleetRequestId, NextToken, undefined, default_config()).
+
+describe_spot_fleet_instances_paged(SpotFleetRequestId, NextToken, MaxResults) ->
+    describe_spot_fleet_instances_paged(SpotFleetRequestId, NextToken, MaxResults, default_config()).
+
+describe_spot_fleet_instances_paged(SpotFleetRequestId, NextToken, MaxResults, Config) ->
+    put(spot_fleet_instances_request_id, SpotFleetRequestId),
+    put(spot_fleet_instances_next_token, NextToken),
+    put(spot_fleet_instances_max_results, MaxResults),
+    put(spit_fleet_instances_config, Config),
+    ok.
+
+next_spot_fleet_instances_page() ->
+    SpotFleetRequestId = get(spot_fleet_instances_request_id),
+    NextToken = get(spot_fleet_instances_next_token),
+    MaxResults = get(spot_fleet_instances_max_results),
+    Config = get(spot_fleet_instances_config),
+    case describe_spot_fleet_instances(SpotFleetRequestId, NextToken, MaxResults, Config) of
+      {ok, [{instances, Instances}, {next_token, NewNextToken}]} ->
+        put(spot_fleet_instances_next_token, NewNextToken),
+        io:write(NewNextToken),
+        {ok, Instances};
+      {error, _} = E -> E
+    end.
+
 -spec(modify_spot_fleet_request/3 :: (string(), non_neg_integer(), default | no_termination) -> ok | {error, term()}).
 modify_spot_fleet_request(SpotFleetRequestId, TargetCapacity, ExcessCapacityTerminationPolicy) ->
     modify_spot_fleet_request(SpotFleetRequestId, TargetCapacity,
@@ -2995,6 +3560,89 @@ describe_tags(Filters, Config) ->
             {error, Reason}
     end.
 
+describe_tags_paged() ->
+    describe_tags_paged(200, [], default_config()).
+
+describe_tags_paged(#aws_config{} = Config) ->
+    describe_tags_paged(200, [], Config);
+describe_tags_paged(MaxResults)
+  when is_integer(MaxResults), MaxResults >= 5, MaxResults =< 1000 ->
+    describe_tags_paged(MaxResults, [], default_config());
+describe_tags_paged(Filters) ->
+    describe_tags_paged(200, Filters, default_config()).
+
+describe_tags_paged(MaxResults, Filters, Config) ->
+    put(tags_max_results, MaxResults),
+    put(tags_filters, Filters),
+    put(tags_config, Config),
+    put(tags_next_token, undefined).
+
+next_tags_page() ->
+    Config = get(tags_config),
+    MaxResults = get(tags_max_results),
+    Filters = get(tags_filters),
+    case get(tags_next_token) of
+        undefined ->
+            Params = list_to_ec2_filter(Filters) ++
+                erlcloud_aws:param_list([MaxResults], "MaxResults"),
+            case ec2_query_full(Config, "DescribeTags", Params, ?NEW_API_VERSION) of
+                {ok, Doc} ->
+                    case xmerl_xpath:string("/DescribeTagsResponse/nextToken",Doc) of
+                        [] ->
+                            put(tags_next_token, null);
+                        NextTokenXMLString ->
+                            NewNextToken = element(5,lists:nth(1,element(9,lists:nth(1,NextTokenXMLString)))),
+                            put(tags_next_token, NewNextToken)
+                    end,
+                    Tags = xmerl_xpath:string("/DescribeTagsResponse/tagSet/item", Doc),
+                    {ok, [extract_tag(Tag) || Tag <- Tags]};
+                {error, Reason} ->
+                    {error, Reason}
+            end;
+        null ->
+            {eol};
+        NextToken ->
+            Params = list_to_ec2_filter(Filters) ++
+                erlcloud_aws:param_list([MaxResults], "MaxResults") ++
+                erlcloud_aws:param_list([NextToken], "NextToken"),
+            case ec2_query_full(Config, "DescribeTags", Params, ?NEW_API_VERSION) of
+                {ok, Doc} ->
+                    case xmerl_xpath:string("/DescribeTagsResponse/nextToken",Doc) of
+                        [] ->
+                            put(tags_next_token, null);
+                        NextTokenXMLString ->
+                            NewNextToken = element(5,lists:nth(1,element(9,lists:nth(1,NextTokenXMLString)))),
+                            put(tags_next_token, NewNextToken)
+                    end,
+                    Tags = xmerl_xpath:string("/DescribeTagsResponse/tagSet/item", Doc),
+                    {ok, [extract_tag(Tag) || Tag <- Tags]};
+                {error, Reason} ->
+                    {error, Reason}
+            end
+    end.
+
+describe_tags_paged_test() ->
+    {ok, Original} = describe_tags(),
+    {ok, Paged} = describe_tags_all(),
+    Lists_same = lists_are_the_same(Original, Paged) andalso lists_are_the_same(Paged, Original),
+    {'Original', length(Original), 'Paged', length(Paged), Lists_same}.
+
+describe_tags_all() ->
+    describe_tags_paged(200),
+    {ok, describe_tags_all([])}.
+describe_tags_all(List) ->
+    case next_tags_page() of
+        {ok, NextPage} ->
+            case NextPage of
+                [] ->
+                    List;
+                MoreResults ->
+                    describe_tags_all(lists:append(List, MoreResults))
+            end;
+        {eol} ->
+            List
+    end.
+
 -spec filter_name(filter_name()) -> string().
 filter_name(key) -> "key";
 filter_name(resource_id) -> "resource-id";
@@ -3145,6 +3793,11 @@ ec2_query(Config, Action, Params, ApiVersion) ->
     erlcloud_aws:aws_request_xml4(post, Config#aws_config.ec2_host,
                                   "/", QParams, "ec2", Config).
 
+ec2_query_full(Config, Action, Params, ApiVersion) ->
+    QParams = [{"Action", Action}, {"Version", ApiVersion}|Params],
+    erlcloud_aws:aws_request_xml4_full(post, Config#aws_config.ec2_host,
+                                  "/", QParams, "ec2", Config).
+
 default_config() -> erlcloud_aws:default_config().
 
 list_to_ec2_filter(none) ->
@@ -3285,3 +3938,4 @@ extract_cgw(Node) ->
        [extract_tag_item(Item)
         || Item <- xmerl_xpath:string("tagSet/item", Node)]}
  ].
+
