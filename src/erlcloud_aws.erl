@@ -237,6 +237,7 @@ aws_request_form_raw(Method, Scheme, Host, Port, Path, Form, Headers, Config) ->
     end.
 
 param_list([], _Key) -> [];
+param_list(undefined, _Key) -> [];
 param_list(Values, Key) when is_tuple(Key) ->
     Seq = lists:seq(1, size(Key)),
     lists:flatten(
