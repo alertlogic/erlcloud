@@ -2247,10 +2247,10 @@ put_item_input_tests(_) ->
                                         {<<"null_value">>, {null, true}},
                                         {<<"list_value">>, {l, ["string", {ss, ["string1", "string2"]}]}},
                                         {<<"map_value">>, {m, [
+                                            {<<"empty_map_value">>, {m, []}},
                                             {<<"key1">>, "value1"},
                                             {<<"key2">>, {l, ["list_string1", "list_string2"]}}
-                                        ]}},
-                                        {<<"empty_map_value">>, {m, []}}
+                                        ]}}
                                        ])), "
 {
     \"TableName\": \"Table\",
