@@ -94,7 +94,7 @@ request_and_retry(Config, ResultFun, {retry, Request}, MaxAttempts) ->
                          error_type = httpc,
                          httpc_error_reason = Reason},
             request_and_retry(
-                Config, 
+                Config#aws_config{timeout = 2 * erlcloud_aws:get_timeout(Config)},
                 ResultFun, 
                 RetryFun(Request4),
                 MaxAttempts - 1)
