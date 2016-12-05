@@ -1306,7 +1306,7 @@ s3_simple_request(Config, Method, Host, Path, Subresource, Params, POSTData, Hea
                 #xmlElement{name='Error'} ->
                     ErrCode = erlcloud_xml:get_text("/Error/Code", XML),
                     ErrMsg = erlcloud_xml:get_text("/Error/Message", XML),
-                    erlang:error({s3_error, ErrCode, ErrMsg});
+                    throw({s3_error, ErrCode, ErrMsg});
                 _ ->
                     ok
             end
@@ -1319,7 +1319,7 @@ s3_xml_request(Config, Method, Host, Path, Subresource, Params, POSTData, Header
         #xmlElement{name='Error'} ->
             ErrCode = erlcloud_xml:get_text("/Error/Code", XML),
             ErrMsg = erlcloud_xml:get_text("/Error/Message", XML),
-            erlang:error({s3_error, ErrCode, ErrMsg});
+            throw({s3_error, ErrCode, ErrMsg});
         _ ->
             XML
     end.
@@ -1328,8 +1328,8 @@ s3_request(Config, Method, Host, Path, Subreasource, Params, POSTData, Headers) 
     case s3_request2(Config, Method, Host, Path, Subreasource, Params, POSTData, Headers) of
         {ok, Result} ->
             Result;
-        {error, Reason} ->
-            erlang:error({aws_error, Reason})
+        {error, Reason}->
+            {error, Reason}
     end.
 
 %% s3_request2 returns {ok, Body} or {error, Reason} instead of throwing as s3_request does

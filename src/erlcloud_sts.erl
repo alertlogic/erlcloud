@@ -118,7 +118,7 @@ sts_query(AwsConfig, Action, Params, ApiVersion) ->
         {ok, Body} ->
             Body;
         {error, Reason} ->
-            erlang:error({aws_error, Reason})
+           {error, Reason}
     end.
 
 expiration_tosecs( Datetime ) when is_tuple(Datetime) ->

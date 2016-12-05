@@ -404,7 +404,7 @@ sqs_xml_request(Config, QueueName, Action, Params) ->
         {ok, Body} ->
             Body;
         {error, Reason} ->
-            erlang:error({aws_error, Reason})
+            {error, Reason}
     end.
 
 sqs_request(Config, QueueName, Action, Params) ->
@@ -417,7 +417,7 @@ sqs_request(Config, QueueName, Action, Params) ->
         {ok, Body} ->
             Body;
         {error, Reason} ->
-            erlang:error({aws_error, Reason})
+            {error, Reason}
     end.
 
 queue_path([$/|QueueName]) -> [$/ |erlcloud_http:url_encode(QueueName)];
