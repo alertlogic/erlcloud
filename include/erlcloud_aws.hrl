@@ -56,6 +56,7 @@
           cloudtrail_scheme="https://"::string(),
           cloudtrail_host="cloudtrail.amazonaws.com"::string(),
           cloudtrail_port=80::non_neg_integer(),
+          cloudfront_host="cloudfront.amazonaws.com"::string(),
           autoscaling_scheme="https://"::string(),
           autoscaling_host="autoscaling.us-east-1.amazonaws.com"::string(),
           autoscaling_port=80::non_neg_integer(),
