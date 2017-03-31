@@ -56,7 +56,9 @@
     generate_credential_report/0, generate_credential_report/1,
     get_credential_report/0, get_credential_report/1,
     simulate_principal_policy/2, simulate_principal_policy/3,
-    simulate_custom_policy/2, simulate_custom_policy/3
+    simulate_principal_policy/4, simulate_principal_policy/5,
+    simulate_custom_policy/2, simulate_custom_policy/3,
+    simulate_custom_policy/4, simulate_custom_policy/5
 ]).
 
 -export([get_uri/2]).
@@ -707,26 +709,54 @@ get_credential_report(Config) ->
     iam_query(Config, "GetCredentialReport", [], ItemPath, DataTypeDef).
 
 simulate_principal_policy(PolicySourceArn, ActionNames) ->
-    simulate_principal_policy(PolicySourceArn, ActionNames, default_config()).
+    simulate_principal_policy(PolicySourceArn, ActionNames, [], [], default_config()).
 
-simulate_principal_policy(PolicySourceArn, ActionNames, #aws_config{} = Config)
-  when is_list(PolicySourceArn) andalso is_list(ActionNames) ->
+simulate_principal_policy(PolicySourceArn, ActionNames, #aws_config{} = Config) ->
+    simulate_principal_policy(PolicySourceArn, ActionNames, [], [], Config);
+
+simulate_principal_policy(PolicySourceArn, ActionNames, ResourceArns) ->
+    simulate_principal_policy(PolicySourceArn, ActionNames, ResourceArns, [], default_config()).
+
+simulate_principal_policy(PolicySourceArn, ActionNames, ResourceArns, #aws_config{} = Config) ->
+    simulate_principal_policy(PolicySourceArn, ActionNames, ResourceArns, [], Config);
+
+simulate_principal_policy(PolicySourceArn, ActionNames, ResourceArns, ContextEntries) ->
+    simulate_principal_policy(PolicySourceArn, ActionNames, ResourceArns, ContextEntries, default_config()).
+
+simulate_principal_policy(PolicySourceArn, ActionNames, ResourceArns, ContextEntries, #aws_config{} = Config)
+  when is_list(PolicySourceArn) andalso is_list(ActionNames) andalso is_list(ResourceArns) andalso is_list(ContextEntries) ->
     ItemPath = "/SimulatePrincipalPolicyResponse/SimulatePrincipalPolicyResult/"
                "EvaluationResults/member",
-    Params = [{"PolicySourceArn", PolicySourceArn} |
-              erlcloud_util:encode_list("ActionNames", ActionNames)],
+    Params = [{"PolicySourceArn", PolicySourceArn}] ++
+             erlcloud_util:encode_list("ActionNames", ActionNames) ++
+             erlcloud_util:encode_list("ResourceArns", ResourceArns) ++
+             encode_context_entries("ContextEntries", ContextEntries),
     iam_query_all(Config, "SimulatePrincipalPolicy", Params,
                   ItemPath, data_type("EvaluationResult")).
 
 simulate_custom_policy(ActionNames, PolicyInputList) ->
-    simulate_custom_policy(ActionNames, PolicyInputList, default_config()).
+    simulate_custom_policy(ActionNames, PolicyInputList, [], [], default_config()).
 
-simulate_custom_policy(ActionNames, PolicyInputList, #aws_config{} = Config)
-  when is_list(ActionNames), is_list(PolicyInputList) ->
+simulate_custom_policy(ActionNames, PolicyInputList, #aws_config{} = Config) ->
+    simulate_custom_policy(ActionNames, PolicyInputList, [], [], Config);
+
+simulate_custom_policy(ActionNames, PolicyInputList, ResourceArns) ->
+    simulate_custom_policy(ActionNames, PolicyInputList, ResourceArns, [], default_config()).
+
+simulate_custom_policy(ActionNames, PolicyInputList, ResourceArns, #aws_config{} = Config) ->
+    simulate_custom_policy(ActionNames, PolicyInputList, ResourceArns, [], Config);
+
+simulate_custom_policy(ActionNames, PolicyInputList, ResourceArns, ContextEntries) ->
+    simulate_custom_policy(ActionNames, PolicyInputList, ResourceArns, ContextEntries, default_config()).
+
+simulate_custom_policy(ActionNames, PolicyInputList, ResourceArns, ContextEntries, #aws_config{} = Config)
+  when is_list(ActionNames), is_list(PolicyInputList), is_list(ResourceArns), is_list(ContextEntries) ->
     ItemPath = "/SimulateCustomPolicyResponse/SimulateCustomPolicyResult/"
                "EvaluationResults/member",
-    Params = erlcloud_util:encode_list("ActionNames", ActionNames) ++ 
-             erlcloud_util:encode_list("PolicyInputList", PolicyInputList),
+    Params = erlcloud_util:encode_list("ActionNames", ActionNames) ++
+             erlcloud_util:encode_list("PolicyInputList", PolicyInputList) ++
+             erlcloud_util:encode_list("ResourceArns", ResourceArns) ++
+             encode_context_entries("ContextEntries", ContextEntries),
     iam_query_all(Config, "SimulateCustomPolicy", Params,
                   ItemPath, data_type("EvaluationResult")).
 
@@ -815,6 +845,17 @@ extract_account_summary(Item) ->
                       [{PKey, apply(erlcloud_xml, ValueFun, ["value", E])}|As]
               end
       end, [], Entries).
+
+
+encode_context_entries(Prefix, ContextEntries) ->
+    EncodeListFun =
+        fun(ContextEntry) ->
+                ContextVals = proplists:get_value("ContextKeyValues", ContextEntry),
+                proplists:delete("ContextKeyValues", ContextEntry) ++
+                    erlcloud_util:encode_list("ContextKeyValues", ContextVals)
+        end,
+    ProcessedContextEntries = lists:map(EncodeListFun, ContextEntries),
+    erlcloud_util:encode_param_list(Prefix, ProcessedContextEntries).
 
 
 data_type("AccountAuthorizationDetails") ->

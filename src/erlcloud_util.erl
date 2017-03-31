@@ -2,7 +2,8 @@
 -export([sha_mac/2, sha256_mac/2, md5/1, sha256/1,rand_uniform/1,
          is_dns_compliant_name/1,
          query_all/4, query_all/5, query_all_token/4, make_response/2, 
-         get_items/2, to_string/1, encode_list/2, next_token/2]).
+         get_items/2, to_string/1, encode_list/2, encode_param_list/2,
+         next_token/2]).
 
 -define(MAX_ITEMS, 1000).
 
@@ -139,6 +140,15 @@ encode_list(ElementName, Elements) ->
     Numbered = lists:zip(lists:seq(1, length(Elements)), Elements),
     [{ElementName ++ ".member." ++ integer_to_list(N), Element} ||
         {N, Element} <- Numbered].
+
+
+encode_param_list(ElementName, Elements) ->
+    EncodedList = encode_list(ElementName, Elements),
+    ParamConvertFun =
+        fun({Prefix, Elems}) ->
+                lists:map(fun({Key, Val}) -> {Prefix ++ "." ++ Key, Val} end, Elems)
+        end,
+    lists:flatmap(ParamConvertFun, EncodedList).
 
 make_response(Xml, Result) ->
     IsTruncated = erlcloud_xml:get_bool("/*/*/IsTruncated", Xml),
